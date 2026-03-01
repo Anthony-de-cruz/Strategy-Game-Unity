@@ -1,30 +1,35 @@
-# This workflow will build a .NET project
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
-
 name: .NET
 
 on:
   push:
     branches: [ "main", "pipeline-testing" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "main", "pipeline-testing" ]
 
 jobs:
-  build:
-
+  test:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: 8.0.x
-    - name: CD
-      run: ls ./Unity && cd Strategy-Game-Unity
-    - name: Restore dependencies
-      run: dotnet restore
+        dotnet-version: 10.0.x
+
+    - name: Restore 
+      run: |
+        dotnet restore GameLogic/GameLogic.csproj
+        dotnet restore GameLogicSimulation/GameLogicSimulation.csproj
+
     - name: Build
-      run: dotnet build --no-restore
+      run: |
+        dotnet build GameLogic/GameLogic.csproj --no-restore --configuration Release
+        dotnet build GameLogicSimulation/GameLogicSimulation.csproj --no-restore --configuration Release
+
     - name: Test
-      run: dotnet test --no-build --verbosity normal
+      run: |
+        dotnet test GameLogic/GameLogic.csproj --no-build --configuration Release
+        dotnet test GameLogicSimulation/GameLogicSimulation.csproj --no-build --configuration Release
