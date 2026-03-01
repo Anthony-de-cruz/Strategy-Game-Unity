@@ -5,7 +5,7 @@ name: .NET
 
 on:
   push:
-    branches: [ "main", "pipeline-test" ]
+    branches: [ "main", "pipeline-testing" ]
   pull_request:
     branches: [ "main" ]
 
