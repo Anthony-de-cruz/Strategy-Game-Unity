@@ -6,8 +6,11 @@
     <Nullable>disable</Nullable>
   </PropertyGroup>
 
-  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="copy /Y &quot;$(TargetDir)$(TargetName).dll&quot; &quot;$(SolutionDir)\Unity\Assets\Scripts\$(TargetName).dll&quot; " />
+  <Target Name="PostBuildCopy" AfterTargets="Build">
+    <Copy 
+      SourceFiles="$(TargetDir)$(TargetName).dll"
+      DestinationFiles="$(SolutionDir)Unity/Assets/Plugins/$(TargetName).dll"
+      SkipUnchangedFiles="true" />
   </Target>
 
 </Project>
