@@ -27,7 +27,7 @@ namespace GameLogic
         /// <summary>
         /// List of units in the game.
         /// </summary>
-        public List<Unit> Units { get; } = new List<Unit>();
+        private readonly List<Unit> _units = new List<Unit>();
 
         /// <summary>
         /// Internal turn state machine.
@@ -59,6 +59,36 @@ namespace GameLogic
             _turnStateMachine.Init();     // Blue turn
             _turnStateMachine.EndTurn();  // Red turn
             _turnStateMachine.EndTurn();  // Blue turn
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="unit"></param>
+        public void AddUnit(Unit unit)
+        {
+            for (int i = 0; i < _units.Count; i++)
+                if (_units[i].Id == unit.Id)
+                    return;
+            _units.Add(unit);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="unit"></param>
+        /// <returns></returns>
+        public bool TryGetUnit(uint id, out Unit unit)
+        {
+            for (int i = 0; i < _units.Count; i++)
+                if (_units[i].Id == id)
+                {
+                    unit = _units[i];
+                    return true;
+                }
+            unit = null;
+            return false;
         }
     }
 }
