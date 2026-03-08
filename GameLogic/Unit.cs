@@ -1,4 +1,6 @@
-﻿using GameLogic.Events;
+﻿using System;
+
+using GameLogic.Events;
 
 namespace GameLogic
 {
@@ -67,15 +69,20 @@ namespace GameLogic
         /// <param name="id">The unit ID.</param>
         /// <param name="team">The team the unit belongs to.</param>
         /// <param name="type">The type of unit.</param>
-        /// <param name="strength">The starting strength.</param>
         /// <param name="eventBus">Event bus to publish to.</param>
-        public Unit(uint id, UnitTeam team, UnitType type, uint strength, EventBus eventBus)
+        public Unit(uint id, UnitTeam team, UnitType type, EventBus eventBus)
         {
             Id = id;
             Team = team;
             Type = type;
-            _strength = strength;
             _eventBus = eventBus;
+
+            _strength = type switch
+            {
+                UnitType.Infantry => 5,
+                UnitType.Tank => 10,
+                _ => throw new NotImplementedException($"Unhandled unit type: {type}."),
+            };
         }
     }
 }
