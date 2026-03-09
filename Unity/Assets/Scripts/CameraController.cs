@@ -7,27 +7,21 @@ public class CameraController : MonoBehaviour
 {
     public float moveSpeed = 25f;
 
-    public float minY = 10f;
-    public float maxY = 60f;
-
-    public Vector2 xBounds = new(-100, 100);
-    public Vector2 yBounds = new(-100, 100);
-    public Vector2 zBounds = new(-100, 100);
-
     public float yawSpeed = 0.2f;
     public float pitchSpeed = 0.2f;
 
-    public float minPitch = -20f;
-    public float maxPitch = 120f;
+    public Vector2 xBounds = new(0, 100);
+    public Vector2 yBounds = new(0, 100);
+    public Vector2 zBounds = new(0, 100);
 
-    public float screenEdgeSize = 10f;
+    public float minPitch = -25f;
+    public float maxPitch = 75f;
 
     PlayerInput _input;
 
     Vector3 _moveInput;
-    Vector2 _lookInput;
-    Vector2 _mousePos;
-    bool _cameraRotating;
+    Vector2 _rotationInput;
+    bool _isRotating;
     float _pitch;
     float _yaw;
 
@@ -49,11 +43,11 @@ public class CameraController : MonoBehaviour
         _input.Player.CameraMove.performed += ctx => _moveInput = ctx.ReadValue<Vector3>();
         _input.Player.CameraMove.canceled += _ => _moveInput = Vector3.zero;
 
-        _input.Player.CameraRotateToggle.performed += _ => _cameraRotating = true;
-        _input.Player.CameraRotateToggle.canceled += _ => _cameraRotating = false;
+        _input.Player.CameraRotateToggle.performed += _ => _isRotating = true;
+        _input.Player.CameraRotateToggle.canceled += _ => _isRotating = false;
 
-        _input.Player.CameraRotate.performed += ctx => _lookInput = ctx.ReadValue<Vector2>();
-        _input.Player.CameraRotate.canceled += _ => _lookInput = Vector2.zero;
+        _input.Player.CameraRotate.performed += ctx => _rotationInput = ctx.ReadValue<Vector2>();
+        _input.Player.CameraRotate.canceled += _ => _rotationInput = Vector2.zero;
     }
 
     /// <summary>
@@ -69,57 +63,43 @@ public class CameraController : MonoBehaviour
     /// </summary>
     void Update()
     {
-        HandleKeyboardPan();
         HandleRotation();
-        //HandleEdgeScroll();
+        HandleKeyboardPan();
         ClampPosition();
     }
 
     /// <summary>
-    /// 
-    /// </summary>
-    void HandleKeyboardPan()
-    {
-        Vector3 move = new(_moveInput.x, _moveInput.y, _moveInput.z);
-        transform.Translate(moveSpeed * Time.deltaTime * move, Space.World);
-    }
-
-    /// <summary>
-    /// 
+    /// Rotate the camera based on input.
     /// </summary>
     void HandleRotation()
     {
-        if (!_cameraRotating) return;
+        if (!_isRotating) return;
 
-        _yaw +=  _lookInput.x * yawSpeed;
-        _pitch -= _lookInput.y * pitchSpeed;
-        _pitch = Mathf.Clamp(_pitch, minPitch, maxPitch);
+        _yaw +=  _rotationInput.x * yawSpeed;
+        _pitch = Mathf.Clamp(_pitch - _rotationInput.y * pitchSpeed, minPitch, maxPitch);
 
-        Debug.Log($"ROTATING: yaw: {_yaw} pitch: {_pitch} {_lookInput}");
-
-        transform.rotation = Quaternion.Euler(-_pitch, _yaw, 0f);
+        transform.rotation = Quaternion.Euler(_pitch, _yaw, 0f);
     }
 
     /// <summary>
-    /// 
+    /// Pan the camera relative to camera yaw based on input.
     /// </summary>
-    void HandleEdgeScroll()
+    void HandleKeyboardPan()
     {
-        Vector3 move = Vector3.zero;
+        Vector3 forward = transform.forward;
+        Vector3 right = transform.right;
+        
+        forward.y = 0f; // Remove pitch.
+        right.y = 0f;
+        forward.Normalize();
+        right.Normalize();
 
-        if (_mousePos.x < screenEdgeSize)
-            move.x -= 1;
+        Vector3 move =
+            right * _moveInput.x +
+            forward * _moveInput.z +
+            (Vector3.up * _moveInput.y);
 
-        if (_mousePos.x > Screen.width - screenEdgeSize)
-            move.x += 1;
-
-        if (_mousePos.y < screenEdgeSize)
-            move.z -= 1;
-
-        if (_mousePos.y > Screen.height - screenEdgeSize)
-            move.z += 1;
-
-        transform.Translate(move * moveSpeed * Time.deltaTime, Space.World);
+        transform.position += moveSpeed * Time.deltaTime * move;
     }
 
     /// <summary>
