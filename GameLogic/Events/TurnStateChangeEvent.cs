@@ -16,14 +16,21 @@ namespace GameLogic.Events
         public TurnState NewState { get; }
 
         /// <summary>
+        /// The current turn number.
+        /// </summary>
+        public int TurnCounter { get; }
+
+        /// <summary>
         /// Constructor for <see cref="TurnStateChangeEvent"/>.
         /// </summary>
         /// <param name="oldState"></param>
         /// <param name="newState"></param>
-        public TurnStateChangeEvent(TurnState oldState, TurnState newState)
+        /// <param name="turnCounter"></param>
+        public TurnStateChangeEvent(TurnState oldState, TurnState newState, int turnCounter)
         {
             OldState = oldState;
             NewState = newState;
+            TurnCounter = turnCounter;
         }
     }
 }

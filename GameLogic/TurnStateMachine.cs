@@ -1,4 +1,5 @@
 ﻿using GameLogic.Events;
+using System.Net.NetworkInformation;
 
 namespace GameLogic
 {
@@ -19,8 +20,34 @@ namespace GameLogic
     /// <summary>
     /// 
     /// </summary>
+    public static class TurnStateExt
+    {
+        /// <summary>
+        /// Get <see cref="TurnState"/> string from <paramref name="turnState"/>.
+        /// </summary>
+        /// <param name="turnState"></param>
+        /// <returns></returns>
+        public static string ToString(this TurnState turnState) => turnState switch
+        {
+            TurnState.Init => "",
+            TurnState.BlueTurn => "Blufor Turn",
+            TurnState.RedTurn => "Redfor Turn",
+            TurnState.BlueAction => "Blufor Action...",
+            TurnState.RedAction => "Redfor Action...",
+            TurnState.BlueVictory => "Blufor Victory!",
+            TurnState.RedVictory => "Redfor Victory!",
+            _ => turnState.ToString()
+        };
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
     public class TurnStateMachine
     {
+        /// <summary>
+        /// 
+        /// </summary>
         public TurnState State
         {
             get => _state;
@@ -28,12 +55,20 @@ namespace GameLogic
             {
                 if (_state == value)
                     return;
-                _eventBus.Publish(new TurnStateChangeEvent(_state, value));
+                _eventBus.Publish(new TurnStateChangeEvent(_state, value, TurnCounter));
                 _state = value;
             }
         }
         private TurnState _state = TurnState.Init;
 
+        /// <summary>
+        /// 
+        /// </summary>
+        public int TurnCounter { get; private set; } = 0;
+
+        /// <summary>
+        /// 
+        /// </summary>
         private readonly EventBus _eventBus;
 
         /// <summary>
@@ -66,6 +101,7 @@ namespace GameLogic
                     State = TurnState.RedTurn;
                     break;
                 case TurnState.RedTurn:
+                    TurnCounter++;
                     State = TurnState.BlueTurn;
                     break;
                 default:

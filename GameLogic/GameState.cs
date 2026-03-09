@@ -25,14 +25,14 @@ namespace GameLogic
         public Tile[][] Map { get; }
 
         /// <summary>
+        /// Turn state machine.
+        /// </summary>
+        public TurnStateMachine TurnStateMachine { get; private set; }
+
+        /// <summary>
         /// List of units in the game.
         /// </summary>
         private readonly List<Unit> _units = new List<Unit>();
-
-        /// <summary>
-        /// Internal turn state machine.
-        /// </summary>
-        private readonly TurnStateMachine _turnStateMachine;
 
         /// <summary>
         /// Constructor for GameState.
@@ -53,12 +53,7 @@ namespace GameLogic
                 }
             }
 
-            _turnStateMachine = new TurnStateMachine(eventBus);
-
-            // Initialize turn order
-            _turnStateMachine.Init();     // Blue turn
-            _turnStateMachine.EndTurn();  // Red turn
-            _turnStateMachine.EndTurn();  // Blue turn
+            TurnStateMachine = new TurnStateMachine(eventBus);
         }
 
         /// <summary>

@@ -16,6 +16,15 @@
                     "initialStateCheck": true
                 },
                 {
+                    "name": "CameraMoveFastToggle",
+                    "type": "Button",
+                    "id": "2a6e1972-37e2-4923-8fee-38a9361597de",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
                     "name": "CameraRotateToggle",
                     "type": "Button",
                     "id": "649c279e-d00d-4b7d-9637-4c4126d76935",
@@ -173,6 +182,17 @@
                     "processors": "",
                     "groups": ";Keyboard&Mouse",
                     "action": "CameraRotate",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "c35d22c7-5cec-455b-85e5-6d0e871a4e11",
+                    "path": "<Keyboard>/shift",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": ";Keyboard&Mouse",
+                    "action": "CameraMoveFastToggle",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

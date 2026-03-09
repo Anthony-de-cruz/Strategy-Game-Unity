@@ -102,6 +102,15 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
                     ""initialStateCheck"": true
                 },
                 {
+                    ""name"": ""CameraMoveFastToggle"",
+                    ""type"": ""Button"",
+                    ""id"": ""2a6e1972-37e2-4923-8fee-38a9361597de"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
                     ""name"": ""CameraRotateToggle"",
                     ""type"": ""Button"",
                     ""id"": ""649c279e-d00d-4b7d-9637-4c4126d76935"",
@@ -259,6 +268,17 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""groups"": "";Keyboard&Mouse"",
                     ""action"": ""CameraRotate"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""c35d22c7-5cec-455b-85e5-6d0e871a4e11"",
+                    ""path"": ""<Keyboard>/shift"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": "";Keyboard&Mouse"",
+                    ""action"": ""CameraMoveFastToggle"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -847,6 +867,7 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
         // Player
         m_Player = asset.FindActionMap("Player", throwIfNotFound: true);
         m_Player_CameraMove = m_Player.FindAction("CameraMove", throwIfNotFound: true);
+        m_Player_CameraMoveFastToggle = m_Player.FindAction("CameraMoveFastToggle", throwIfNotFound: true);
         m_Player_CameraRotateToggle = m_Player.FindAction("CameraRotateToggle", throwIfNotFound: true);
         m_Player_CameraRotate = m_Player.FindAction("CameraRotate", throwIfNotFound: true);
         m_Player_Interact = m_Player.FindAction("Interact", throwIfNotFound: true);
@@ -944,6 +965,7 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
     private readonly InputActionMap m_Player;
     private List<IPlayerActions> m_PlayerActionsCallbackInterfaces = new List<IPlayerActions>();
     private readonly InputAction m_Player_CameraMove;
+    private readonly InputAction m_Player_CameraMoveFastToggle;
     private readonly InputAction m_Player_CameraRotateToggle;
     private readonly InputAction m_Player_CameraRotate;
     private readonly InputAction m_Player_Interact;
@@ -962,6 +984,10 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
         /// Provides access to the underlying input action "Player/CameraMove".
         /// </summary>
         public InputAction @CameraMove => m_Wrapper.m_Player_CameraMove;
+        /// <summary>
+        /// Provides access to the underlying input action "Player/CameraMoveFastToggle".
+        /// </summary>
+        public InputAction @CameraMoveFastToggle => m_Wrapper.m_Player_CameraMoveFastToggle;
         /// <summary>
         /// Provides access to the underlying input action "Player/CameraRotateToggle".
         /// </summary>
@@ -1003,6 +1029,9 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
             @CameraMove.started += instance.OnCameraMove;
             @CameraMove.performed += instance.OnCameraMove;
             @CameraMove.canceled += instance.OnCameraMove;
+            @CameraMoveFastToggle.started += instance.OnCameraMoveFastToggle;
+            @CameraMoveFastToggle.performed += instance.OnCameraMoveFastToggle;
+            @CameraMoveFastToggle.canceled += instance.OnCameraMoveFastToggle;
             @CameraRotateToggle.started += instance.OnCameraRotateToggle;
             @CameraRotateToggle.performed += instance.OnCameraRotateToggle;
             @CameraRotateToggle.canceled += instance.OnCameraRotateToggle;
@@ -1026,6 +1055,9 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
             @CameraMove.started -= instance.OnCameraMove;
             @CameraMove.performed -= instance.OnCameraMove;
             @CameraMove.canceled -= instance.OnCameraMove;
+            @CameraMoveFastToggle.started -= instance.OnCameraMoveFastToggle;
+            @CameraMoveFastToggle.performed -= instance.OnCameraMoveFastToggle;
+            @CameraMoveFastToggle.canceled -= instance.OnCameraMoveFastToggle;
             @CameraRotateToggle.started -= instance.OnCameraRotateToggle;
             @CameraRotateToggle.performed -= instance.OnCameraRotateToggle;
             @CameraRotateToggle.canceled -= instance.OnCameraRotateToggle;
@@ -1342,6 +1374,13 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnCameraMove(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "CameraMoveFastToggle" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnCameraMoveFastToggle(InputAction.CallbackContext context);
         /// <summary>
         /// Method invoked when associated input action "CameraRotateToggle" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
         /// </summary>
