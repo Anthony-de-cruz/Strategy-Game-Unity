@@ -18,7 +18,7 @@ namespace GameLogic
     }
 
     /// <summary>
-    /// 
+    /// Extension for <see cref="TurnState"/>.
     /// </summary>
     public static class TurnStateExt
     {
@@ -30,12 +30,12 @@ namespace GameLogic
         public static string ToString(this TurnState turnState) => turnState switch
         {
             TurnState.Init => "",
-            TurnState.BlueTurn => "Blufor Turn",
-            TurnState.RedTurn => "Redfor Turn",
-            TurnState.BlueAction => "Blufor Action...",
-            TurnState.RedAction => "Redfor Action...",
-            TurnState.BlueVictory => "Blufor Victory!",
-            TurnState.RedVictory => "Redfor Victory!",
+            TurnState.BlueTurn => "BLUFOR Turn",
+            TurnState.RedTurn => "REDFOR Turn",
+            TurnState.BlueAction => "BLUFOR Action...",
+            TurnState.RedAction => "REDFOR Action...",
+            TurnState.BlueVictory => "BLUFOR Victory!",
+            TurnState.RedVictory => "REDFOR Victory!",
             _ => turnState.ToString()
         };
     }

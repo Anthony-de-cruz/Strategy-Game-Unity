@@ -24,33 +24,19 @@ namespace Assets.Scripts
         public GameObject prefabTankRed;
 
         /// <summary>
-        ///     Simulation event bus.
-        ///     Most events will be logged and then forwarded
-        ///     onto the rest of the Unity code base.
-        /// </summary>
-        private EventBus _simEventBus;
-
-        /// <summary>
         ///     Simulation state.
         /// </summary>
         private GameState _simState;
-
-        /// <summary>
-        ///     Current unit counter.
-        /// </summary>
-        private uint _unitId;
 
         /// <summary>
         ///     Called on script load.
         /// </summary>
         private void Awake()
         {
-            _simEventBus = new EventBus();
-            _simEventBus.Subscribe<TurnStateChangeEvent>(HandleTurnStateChanged);
-            _simEventBus.Subscribe<UnitDamagedEvent>(HandleUnitDamaged);
-
-            _simState = new GameState(50, 50, _simEventBus);
+            _simState = new GameState(50, 50);
             _simState.TurnStateMachine.Init();
+            _simState.EventBus.Subscribe<TurnStateChangeEvent>(HandleTurnStateChanged);
+            _simState.EventBus.Subscribe<UnitDamagedEvent>(HandleUnitDamaged);
 
             for (var i = 0; i < 3; i++) CreateUnit(UnitTeam.Blue, UnitType.Infantry, i + 12, 10);
             for (var i = 0; i < 2; i++) CreateUnit(UnitTeam.Blue, UnitType.Tank, i + 10, 9);
@@ -72,6 +58,9 @@ namespace Assets.Scripts
         /// </summary>
         public event Action<UnitDamagedEvent> OnUnitDamaged;
 
+        /// <summary>
+        ///
+        /// </summary>
         public void EndTurn()
         {
             _simState.TurnStateMachine.EndTurn();
@@ -84,12 +73,9 @@ namespace Assets.Scripts
         /// <param name="xCoord"></param>
         /// <param name="yCoord"></param>
         /// <returns></returns>
-        private Unit CreateUnit(UnitTeam team, UnitType type, int xCoord, int yCoord)
+        private void CreateUnit(UnitTeam team, UnitType type, int xCoord, int yCoord)
         {
-            Unit newUnit = new(_unitId, team, type, _simEventBus);
-            _simState.AddUnit(newUnit);
-            _simState.Map[xCoord][yCoord].UnitId = _unitId;
-            _unitId++;
+            Unit newUnit = _simState.CreateUnit(team, type, xCoord, yCoord);
 
             GameObject prefab = (type, team) switch
             {
@@ -110,9 +96,8 @@ namespace Assets.Scripts
             GameObject obj = Instantiate(prefab, new Vector3(xCoord * WORLD_SCALE, 0.5f, yCoord * WORLD_SCALE),
                 rotation);
             Debug.Log(
-                $"Unit {newUnit.Id} of type {newUnit.Type} instantiated @ {xCoord},{yCoord}/{obj.transform.position}");
-
-            return newUnit;
+                $"Unit {newUnit.Id} of type {newUnit.Type} instantiated" +
+                $" @ {xCoord},{yCoord}/{obj.transform.position}");
         }
 
         /// <summary>
