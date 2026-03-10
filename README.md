@@ -8,4 +8,4 @@ Third party assets are stored in a submodule found [here](https://github.com/Ant
 
 Add the `--recurse-submodules` arg when you clone the repository.
 
-Alternatively, download the submodule with: `git submodule update --init --recursive`
+Alternatively, download the submodule with: `git submodule update --init --recursive`.
