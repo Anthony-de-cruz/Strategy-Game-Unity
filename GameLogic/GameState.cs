@@ -76,12 +76,13 @@ namespace GameLogic
         /// <returns></returns>
         public bool TryGetUnit(uint id, out Unit unit)
         {
-            for (int i = 0; i < _units.Count; i++)
-                if (_units[i].Id == id)
+            foreach (Unit t in _units)
+                if (t.Id == id)
                 {
-                    unit = _units[i];
+                    unit = t;
                     return true;
                 }
+
             unit = null;
             return false;
         }

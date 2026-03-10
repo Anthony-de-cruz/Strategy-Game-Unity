@@ -1,16 +1,17 @@
 using UnityEngine;
 
-public class ObjUnitInfantry : MonoBehaviour
+namespace Assets.Scripts
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    public class ObjUnitInfantry : MonoBehaviour
     {
-        
-    }
+        // Start is called once before the first execution of Update after the MonoBehaviour is created
+        private void Start()
+        {
+        }
 
-    // Update is called once per frame
-    void Update()
-    {
-        
+        // Update is called once per frame
+        private void Update()
+        {
+        }
     }
 }
