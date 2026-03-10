@@ -4,7 +4,7 @@ A turn based strategy game developed in C# with a Unity frontend.
 
 ## Repository Setup
 
-Third party assets are stored in a submodule found [here](https://github.com/Anthony-de-cruz/Strategy-Game-Unity-Third-Party-AssetsA).
+Third party assets are stored in a submodule found [here](https://github.com/Anthony-de-cruz/Strategy-Game-Unity-Third-Party-Assets).
 
 Add the `--recurse-submodules` arg when you clone the repository.
 
