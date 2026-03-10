@@ -104,7 +104,8 @@ namespace GameLogic
             
             var newUnit = new Unit(_unitIdCounter, team, type, EventBus);
             _units.Add(newUnit);
-            Map[xCoord][yCoord].UnitId = ++_unitIdCounter;
+            Map[xCoord][yCoord].UnitId = _unitIdCounter;
+            ++_unitIdCounter;
             return newUnit;
         }
 
