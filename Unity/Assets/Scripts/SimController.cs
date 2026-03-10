@@ -1,7 +1,9 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using GameLogic;
 using GameLogic.Events;
+using GameLogic.MyApp.Exceptions;
 using UnityEngine;
 
 namespace Assets.Scripts
@@ -12,11 +14,12 @@ namespace Assets.Scripts
     /// </summary>
     public class SimController : MonoBehaviour
     {
-        /// === MODELS ===
+        // === MODELS ===
+
         /// <summary>
         ///     Represents the sim to game world scale factor.
         /// </summary>
-        public const int WORLD_SCALE = 10;
+        public static readonly int WORLD_SCALE = 10;
 
         public GameObject prefabInfantryBlue;
         public GameObject prefabInfantryRed;
@@ -24,9 +27,34 @@ namespace Assets.Scripts
         public GameObject prefabTankRed;
 
         /// <summary>
+        /// 
+        /// </summary>
+        private uint SelectedId
+        {
+            get => _selectedId;
+            set
+            {
+                _selectedId = value;
+                OnSelectedUnitChanged?.Invoke(value);
+            }
+        }
+        private uint _selectedId;
+        
+        private int _selectedXCoord;
+        private int _selectedYCoord;
+        
+        private readonly Dictionary<uint, GameObject> _unitObjects = new();
+
+        private UnitTeam _clientTeam = UnitTeam.Blue;
+
+        /// <summary>
         ///     Simulation state.
         /// </summary>
         private GameState _simState;
+
+        /// <summary>
+        /// </summary>
+        public TurnState TurnState => _simState.TurnStateMachine.State;
 
         /// <summary>
         ///     Called on script load.
@@ -46,8 +74,12 @@ namespace Assets.Scripts
 
             unit.Strength -= 2;
         }
+        
+        /// <summary>
+        ///     Raised when the selected unit changes.
+        /// </summary>
+        public event Action<uint> OnSelectedUnitChanged;
 
-        /// === SIM ===
         /// <summary>
         ///     Raised when the turn state changes.
         /// </summary>
@@ -59,11 +91,87 @@ namespace Assets.Scripts
         public event Action<UnitDamagedEvent> OnUnitDamaged;
 
         /// <summary>
-        ///
+        /// 
+        /// </summary>
+        /// <param name="xCoord"></param>
+        /// <param name="yCoord"></param>
+        public bool SelectUnitAt(int xCoord, int yCoord)
+        {
+            if (TurnState != TurnState.BlueTurn) return false;
+            uint id = _simState.Map[xCoord][yCoord].UnitId;
+            if (id == 0)
+            {
+                SelectedId = 0;
+                return false;
+            }
+            if (!_simState.TryGetUnit(id, out Unit unit)) throw new ImpossibleStateException();
+            if (unit.Team != _clientTeam) return false;
+                
+            SelectedId = id;
+            _selectedXCoord = xCoord;
+            _selectedYCoord = yCoord;
+            Debug.Log($"SelectUnitAt: {SelectedId}");
+            return true;
+        }
+        
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="xCoord"></param>
+        /// <param name="yCoord"></param>
+        public bool EnemySelectUnitAt(int xCoord, int yCoord)
+        {
+            uint id = _simState.Map[xCoord][yCoord].UnitId;
+            if (id == 0)
+            {
+                SelectedId = 0;
+                return false;
+            }
+            if (!_simState.TryGetUnit(id, out Unit unit)) throw new ImpossibleStateException();
+                
+            _selectedId = id;
+            _selectedXCoord = xCoord;
+            _selectedYCoord = yCoord;
+            Debug.Log($"SelectUnitAt: {SelectedId}");
+            return true;
+        }
+        
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="xCoord"></param>
+        /// <param name="yCoord"></param>
+        public bool MoveSelectedUnitTo(int xCoord, int yCoord)
+        {
+            if (SelectedId == 0) return false;
+            if (_simState.Map[xCoord][yCoord].UnitId != 0) return false;
+            if (!_unitObjects.TryGetValue(SelectedId, out GameObject unit))
+                throw new ImpossibleStateException();
+            
+            _simState.Map[_selectedXCoord][_selectedYCoord].UnitId = 0;
+            _simState.Map[xCoord][yCoord].UnitId = SelectedId;
+            
+            unit.transform.position = new Vector3(xCoord * WORLD_SCALE + 4, 0.5f, yCoord * WORLD_SCALE + 4);
+
+            Debug.Log(
+                $"Moved selected unit {SelectedId} from" +
+                $" {_selectedXCoord},{_selectedYCoord} -> {xCoord},{yCoord}");
+            _selectedXCoord = xCoord;
+            _selectedYCoord = yCoord;
+            return true;
+        }
+
+        /// <summary>
         /// </summary>
         public void EndTurn()
         {
+            SelectedId = 0;
             _simState.TurnStateMachine.EndTurn();
+        }
+
+        public void TestVictory()
+        {
+            _simState.TurnStateMachine.BlueVictory();
         }
 
         /// <summary>
@@ -93,8 +201,9 @@ namespace Assets.Scripts
                 _ => throw new NotImplementedException()
             };
 
-            GameObject obj = Instantiate(prefab, new Vector3(xCoord * WORLD_SCALE, 0.5f, yCoord * WORLD_SCALE),
+            GameObject obj = Instantiate(prefab, new Vector3(xCoord * WORLD_SCALE + 4, 0.5f, yCoord * WORLD_SCALE + 4),
                 rotation);
+            _unitObjects.Add(newUnit.Id, obj);
             Debug.Log(
                 $"Unit {newUnit.Id} of type {newUnit.Type} instantiated" +
                 $" @ {xCoord},{yCoord}/{obj.transform.position}");
@@ -112,7 +221,12 @@ namespace Assets.Scripts
         /// <returns></returns>
         private IEnumerator MockRedTurnEndCoroutine()
         {
-            yield return new WaitForSeconds(2f);
+            yield return new WaitForSeconds(1f);
+
+            EnemySelectUnitAt(13, 15 - _simState.TurnStateMachine.TurnCounter);
+            MoveSelectedUnitTo(13, 14 - _simState.TurnStateMachine.TurnCounter);
+            
+            yield return new WaitForSeconds(1f);
             _simState.TurnStateMachine.EndTurn();
         }
 

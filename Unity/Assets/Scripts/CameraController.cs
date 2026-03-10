@@ -6,6 +6,8 @@ namespace Assets.Scripts
     /// </summary>
     public class CameraController : MonoBehaviour
     {
+        public InputManager inputManager;
+
         public float moveSpeed = 25f;
         public float moveFastSpeed = 50f;
         public float yawSpeed = 0.2f;
@@ -16,22 +18,12 @@ namespace Assets.Scripts
         public Vector2 zBounds = new(0, 100);
         public Vector2 pitchBounds = new(-25f, 75f);
 
-        private PlayerInput _input;
-
         private bool _isMovingFast;
         private bool _isRotating;
         private Vector3 _moveInput;
-        private float _pitch;
+        private float _pitch = 20; // Infer starting pitch from object in future.
         private Vector2 _rotationInput;
         private float _yaw;
-
-        /// <summary>
-        ///     Called on script load.
-        /// </summary>
-        private void Awake()
-        {
-            _input ??= new PlayerInput();
-        }
 
         /// <summary>
         ///     Called once per frame.
@@ -47,28 +39,17 @@ namespace Assets.Scripts
         /// </summary>
         private void OnEnable()
         {
-            _input ??= new PlayerInput(); // Guard clause for unity editor lazy loading of input system.
-            _input.Enable();
+            inputManager.Input.Player.CameraMoveFastToggle.performed += _ => _isMovingFast = true;
+            inputManager.Input.Player.CameraMoveFastToggle.canceled += _ => _isMovingFast = false;
 
-            _input.Player.CameraMoveFastToggle.performed += _ => _isMovingFast = true;
-            _input.Player.CameraMoveFastToggle.canceled += _ => _isMovingFast = false;
+            inputManager.Input.Player.CameraMove.performed += ctx => _moveInput = ctx.ReadValue<Vector3>();
+            inputManager.Input.Player.CameraMove.canceled += _ => _moveInput = Vector3.zero;
 
-            _input.Player.CameraMove.performed += ctx => _moveInput = ctx.ReadValue<Vector3>();
-            _input.Player.CameraMove.canceled += _ => _moveInput = Vector3.zero;
+            inputManager.Input.Player.CameraRotateToggle.performed += _ => _isRotating = true;
+            inputManager.Input.Player.CameraRotateToggle.canceled += _ => _isRotating = false;
 
-            _input.Player.CameraRotateToggle.performed += _ => _isRotating = true;
-            _input.Player.CameraRotateToggle.canceled += _ => _isRotating = false;
-
-            _input.Player.CameraRotate.performed += ctx => _rotationInput = ctx.ReadValue<Vector2>();
-            _input.Player.CameraRotate.canceled += _ => _rotationInput = Vector2.zero;
-        }
-
-        /// <summary>
-        ///     Called on game object disabled.
-        /// </summary>
-        private void OnDisable()
-        {
-            _input.Disable();
+            inputManager.Input.Player.CameraRotate.performed += ctx => _rotationInput = ctx.ReadValue<Vector2>();
+            inputManager.Input.Player.CameraRotate.canceled += _ => _rotationInput = Vector2.zero;
         }
 
         /// <summary>

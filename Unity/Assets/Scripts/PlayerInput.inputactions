@@ -43,9 +43,18 @@
                     "initialStateCheck": true
                 },
                 {
-                    "name": "Interact",
+                    "name": "SelectUnit",
                     "type": "Button",
                     "id": "6c2ab1b8-8984-453a-af3d-a3c78ae1679a",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "MoveSelectedUnit",
+                    "type": "Button",
+                    "id": "32bb2ad1-3c4b-43ef-b86c-c4e77f3fe164",
                     "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
@@ -159,7 +168,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": ";Keyboard&Mouse",
-                    "action": "Interact",
+                    "action": "SelectUnit",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -193,6 +202,17 @@
                     "processors": "",
                     "groups": ";Keyboard&Mouse",
                     "action": "CameraMoveFastToggle",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "208f7ce0-3aa1-4489-93e3-66da3834ce02",
+                    "path": "<Mouse>/rightButton",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": ";Keyboard&Mouse",
+                    "action": "MoveSelectedUnit",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

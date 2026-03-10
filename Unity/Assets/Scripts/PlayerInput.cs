@@ -129,9 +129,18 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
                     ""initialStateCheck"": true
                 },
                 {
-                    ""name"": ""Interact"",
+                    ""name"": ""SelectUnit"",
                     ""type"": ""Button"",
                     ""id"": ""6c2ab1b8-8984-453a-af3d-a3c78ae1679a"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""MoveSelectedUnit"",
+                    ""type"": ""Button"",
+                    ""id"": ""32bb2ad1-3c4b-43ef-b86c-c4e77f3fe164"",
                     ""expectedControlType"": """",
                     ""processors"": """",
                     ""interactions"": """",
@@ -245,7 +254,7 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": "";Keyboard&Mouse"",
-                    ""action"": ""Interact"",
+                    ""action"": ""SelectUnit"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 },
@@ -279,6 +288,17 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""groups"": "";Keyboard&Mouse"",
                     ""action"": ""CameraMoveFastToggle"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""208f7ce0-3aa1-4489-93e3-66da3834ce02"",
+                    ""path"": ""<Mouse>/rightButton"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": "";Keyboard&Mouse"",
+                    ""action"": ""MoveSelectedUnit"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -870,7 +890,8 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
         m_Player_CameraMoveFastToggle = m_Player.FindAction("CameraMoveFastToggle", throwIfNotFound: true);
         m_Player_CameraRotateToggle = m_Player.FindAction("CameraRotateToggle", throwIfNotFound: true);
         m_Player_CameraRotate = m_Player.FindAction("CameraRotate", throwIfNotFound: true);
-        m_Player_Interact = m_Player.FindAction("Interact", throwIfNotFound: true);
+        m_Player_SelectUnit = m_Player.FindAction("SelectUnit", throwIfNotFound: true);
+        m_Player_MoveSelectedUnit = m_Player.FindAction("MoveSelectedUnit", throwIfNotFound: true);
         // UI
         m_UI = asset.FindActionMap("UI", throwIfNotFound: true);
         m_UI_Navigate = m_UI.FindAction("Navigate", throwIfNotFound: true);
@@ -968,7 +989,8 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
     private readonly InputAction m_Player_CameraMoveFastToggle;
     private readonly InputAction m_Player_CameraRotateToggle;
     private readonly InputAction m_Player_CameraRotate;
-    private readonly InputAction m_Player_Interact;
+    private readonly InputAction m_Player_SelectUnit;
+    private readonly InputAction m_Player_MoveSelectedUnit;
     /// <summary>
     /// Provides access to input actions defined in input action map "Player".
     /// </summary>
@@ -997,9 +1019,13 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
         /// </summary>
         public InputAction @CameraRotate => m_Wrapper.m_Player_CameraRotate;
         /// <summary>
-        /// Provides access to the underlying input action "Player/Interact".
+        /// Provides access to the underlying input action "Player/SelectUnit".
         /// </summary>
-        public InputAction @Interact => m_Wrapper.m_Player_Interact;
+        public InputAction @SelectUnit => m_Wrapper.m_Player_SelectUnit;
+        /// <summary>
+        /// Provides access to the underlying input action "Player/MoveSelectedUnit".
+        /// </summary>
+        public InputAction @MoveSelectedUnit => m_Wrapper.m_Player_MoveSelectedUnit;
         /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
@@ -1038,9 +1064,12 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
             @CameraRotate.started += instance.OnCameraRotate;
             @CameraRotate.performed += instance.OnCameraRotate;
             @CameraRotate.canceled += instance.OnCameraRotate;
-            @Interact.started += instance.OnInteract;
-            @Interact.performed += instance.OnInteract;
-            @Interact.canceled += instance.OnInteract;
+            @SelectUnit.started += instance.OnSelectUnit;
+            @SelectUnit.performed += instance.OnSelectUnit;
+            @SelectUnit.canceled += instance.OnSelectUnit;
+            @MoveSelectedUnit.started += instance.OnMoveSelectedUnit;
+            @MoveSelectedUnit.performed += instance.OnMoveSelectedUnit;
+            @MoveSelectedUnit.canceled += instance.OnMoveSelectedUnit;
         }
 
         /// <summary>
@@ -1064,9 +1093,12 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
             @CameraRotate.started -= instance.OnCameraRotate;
             @CameraRotate.performed -= instance.OnCameraRotate;
             @CameraRotate.canceled -= instance.OnCameraRotate;
-            @Interact.started -= instance.OnInteract;
-            @Interact.performed -= instance.OnInteract;
-            @Interact.canceled -= instance.OnInteract;
+            @SelectUnit.started -= instance.OnSelectUnit;
+            @SelectUnit.performed -= instance.OnSelectUnit;
+            @SelectUnit.canceled -= instance.OnSelectUnit;
+            @MoveSelectedUnit.started -= instance.OnMoveSelectedUnit;
+            @MoveSelectedUnit.performed -= instance.OnMoveSelectedUnit;
+            @MoveSelectedUnit.canceled -= instance.OnMoveSelectedUnit;
         }
 
         /// <summary>
@@ -1396,12 +1428,19 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnCameraRotate(InputAction.CallbackContext context);
         /// <summary>
-        /// Method invoked when associated input action "Interact" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// Method invoked when associated input action "SelectUnit" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
         /// </summary>
         /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
-        void OnInteract(InputAction.CallbackContext context);
+        void OnSelectUnit(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "MoveSelectedUnit" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnMoveSelectedUnit(InputAction.CallbackContext context);
     }
     /// <summary>
     /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "UI" which allows adding and removing callbacks.
