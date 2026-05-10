@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-
+using System.IO;
 using GameLogic.Events;
 using GameLogic.MyApp.Exceptions;
 
@@ -30,7 +30,7 @@ namespace GameLogic
         /// Turn state machine.
         /// </summary>
         public TurnStateMachine TurnStateMachine { get; }
-        
+
         /// <summary>
         /// 
         /// </summary>
@@ -45,7 +45,7 @@ namespace GameLogic
         ///     Current unit counter.
         /// </summary>
         private uint _unitIdCounter = 1;
-        
+
 
         /// <summary>
         /// Constructor for GameState.
@@ -56,23 +56,15 @@ namespace GameLogic
         {
             MapX = mapX;
             MapY = mapY;
-            
+
             EventBus = new EventBus();
             TurnStateMachine = new TurnStateMachine(EventBus);
 
-            // Initialise the map
-            Map = new Tile[mapX][];
-            for (int x = 0; x < mapX; x++)
-            {
-                Map[x] = new Tile[mapY];
-                for (int y = 0; y < mapY; y++)
-                {
-                    if (x == 10)
-                        Map[x][y] = new Tile(TileType.Paved, 0);
-                    else
-                        Map[x][y] = new Tile(TileType.Grassland, 0);
-                }
-            }
+            var reader = new StreamReader(File.OpenRead(@"C:\Users\Anthony\University\Game-Development\Strategy-Game-Unity\map.json"));
+            string jsonString = reader.ReadToEnd();
+            reader.Close();
+
+            (Map, MapX, MapY) = MapLoader.LoadFromJson(jsonString);
         }
 
         /// <summary>
@@ -90,21 +82,21 @@ namespace GameLogic
             if (xCoord < 0 || xCoord >= Map.Length)
                 throw new ArgumentOutOfRangeException(
                     $"xCoord ({xCoord}) must be between 0 and {Map.Length}");
-                
+
             if (yCoord < 0 || yCoord >= Map[0].Length)
                 throw new ArgumentOutOfRangeException(
                     $"yCoord ({yCoord}) must be between 0 and {Map[0].Length}");
-                
+
             if (Map[xCoord][yCoord].UnitId != 0)
                 throw new InvalidOperationException(
                     $"Cannot create unit type {type} @ {xCoord},{yCoord}," +
                     $" tile already occupied by unit {Map[xCoord][yCoord].UnitId}.");
-            
+
             if (TryGetUnit(_unitIdCounter, out _))
                 throw new ImpossibleStateException(
                     $"Cannot create unit {_unitIdCounter}," +
                     " this unit already exists.");
-            
+
             var newUnit = new Unit(_unitIdCounter, team, type, EventBus);
             _units.Add(newUnit);
             Map[xCoord][yCoord].UnitId = _unitIdCounter;

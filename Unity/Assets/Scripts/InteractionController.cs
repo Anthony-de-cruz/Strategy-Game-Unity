@@ -65,7 +65,7 @@ namespace Assets.Scripts
             
             var xCoord = (int)hit.point.x / SimController.WORLD_SCALE;
             var yCoord = (int)hit.point.z / SimController.WORLD_SCALE;
-            simController.MoveSelectedUnitTo(xCoord, yCoord);
+            simController.TryMoveSelectedUnitTo(xCoord, yCoord);
         }
     }
 }

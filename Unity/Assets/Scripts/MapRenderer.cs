@@ -33,18 +33,14 @@ namespace Assets.Scripts
         {
             foreach (TilePrefab entry in tilePrefabs)
             {
-                if (_prefabsByType.TryGetValue(entry.type, out var value))
+                if (_prefabsByType.TryGetValue(entry.type, out List<GameObject> value))
                     value.Add(entry.prefab);
                 else
                     _prefabsByType[entry.type] = new List<GameObject> { entry.prefab };
             }
 
             if (tileParent == null)
-            {
                 tileParent = transform;
-            }
-
-            Debug.Log("AWAKENED!");
         }
 
         /// <summary>
@@ -52,7 +48,7 @@ namespace Assets.Scripts
         /// </summary>
         private void OnEnable()
         {
-            Render(simController.GetMap());
+            Render();
         }
 
         /// <summary>
@@ -66,10 +62,10 @@ namespace Assets.Scripts
         /// <summary>
         ///
         /// </summary>
-        /// <param name="map"></param>
         /// <exception cref="InvalidOperationException"></exception>
-        private void Render(Tile[][] map)
+        private void Render()
         {
+            Tile[][] map = simController.GetMap();
             for (var x = 0; x < map[0].Length; x++)
             {
                 for (var y = 0; y < map[0].Length; y++)
@@ -82,19 +78,20 @@ namespace Assets.Scripts
                     GameObject prefab = prefabSet[UnityEngine.Random.Range(0, prefabSet.Count)];
 
                     Vector3 position = new(
-                        x * SimController.WORLD_SCALE,
+                        x * SimController.WORLD_SCALE + SimController.WORLD_SCALE * 0.5f,
                         0f,
-                        y * SimController.WORLD_SCALE
+                        y * SimController.WORLD_SCALE + SimController.WORLD_SCALE * 0.5f
                     );
 
                     GameObject tileObject = Instantiate(
                         prefab,
                         position,
-                        Quaternion.identity,
+                        // Random rotation.
+                        Quaternion.Euler(0f, UnityEngine.Random.Range(0, 4) * 90f, 0f),
                         tileParent
                     );
 
-                    tileObject.name = $"Tile_{tile.Type}_{x}_{y}";
+                    tileObject.name = $"Tile_{tile.Type}_{x}:{y}";
                     _spawnedTiles.Add(tileObject);
                 }
             }

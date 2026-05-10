@@ -38,11 +38,12 @@ namespace Assets.Scripts
                 OnSelectedUnitChanged?.Invoke(value);
             }
         }
+
         private uint _selectedId;
-        
+
         private int _selectedXCoord;
         private int _selectedYCoord;
-        
+
         private readonly Dictionary<uint, GameObject> _unitObjects = new();
 
         private UnitTeam _clientTeam = UnitTeam.Blue;
@@ -104,16 +105,17 @@ namespace Assets.Scripts
                 SelectedId = 0;
                 return false;
             }
+
             if (!_simState.TryGetUnit(id, out Unit unit)) throw new ImpossibleStateException();
             if (unit.Team != _clientTeam) return false;
-                
+
             SelectedId = id;
             _selectedXCoord = xCoord;
             _selectedYCoord = yCoord;
             Debug.Log($"SelectUnitAt: {SelectedId}");
             return true;
         }
-        
+
         /// <summary>
         /// 
         /// </summary>
@@ -127,31 +129,34 @@ namespace Assets.Scripts
                 SelectedId = 0;
                 return false;
             }
+
             if (!_simState.TryGetUnit(id, out Unit unit)) throw new ImpossibleStateException();
-                
+
             _selectedId = id;
             _selectedXCoord = xCoord;
             _selectedYCoord = yCoord;
             Debug.Log($"SelectUnitAt: {SelectedId}");
             return true;
         }
-        
+
         /// <summary>
         /// 
         /// </summary>
         /// <param name="xCoord"></param>
         /// <param name="yCoord"></param>
-        public bool MoveSelectedUnitTo(int xCoord, int yCoord)
+        public bool TryMoveSelectedUnitTo(int xCoord, int yCoord)
         {
             if (SelectedId == 0) return false;
             if (_simState.Map[xCoord][yCoord].UnitId != 0) return false;
-            if (!_unitObjects.TryGetValue(SelectedId, out GameObject unit))
+            if (!_simState.TryGetUnit(SelectedId, out Unit unit) ||
+                !_unitObjects.TryGetValue(SelectedId, out GameObject unitObj))
                 throw new ImpossibleStateException();
-            
+            if (_simState.Map[xCoord][yCoord].Type == TileType.Building && unit.Type == UnitType.Tank) return false;
+
             _simState.Map[_selectedXCoord][_selectedYCoord].UnitId = 0;
             _simState.Map[xCoord][yCoord].UnitId = SelectedId;
-            
-            unit.transform.position = new Vector3(xCoord * WORLD_SCALE + 4, 0.5f, yCoord * WORLD_SCALE + 4);
+
+            unitObj.transform.position = new Vector3(xCoord * WORLD_SCALE + 4, 0.5f, yCoord * WORLD_SCALE + 4);
 
             Debug.Log(
                 $"Moved selected unit {SelectedId} from" +
@@ -233,8 +238,8 @@ namespace Assets.Scripts
             yield return new WaitForSeconds(1f);
 
             EnemySelectUnitAt(13, 15 - _simState.TurnStateMachine.TurnCounter);
-            MoveSelectedUnitTo(13, 14 - _simState.TurnStateMachine.TurnCounter);
-            
+            TryMoveSelectedUnitTo(13, 14 - _simState.TurnStateMachine.TurnCounter);
+
             yield return new WaitForSeconds(1f);
             _simState.TurnStateMachine.EndTurn();
         }
