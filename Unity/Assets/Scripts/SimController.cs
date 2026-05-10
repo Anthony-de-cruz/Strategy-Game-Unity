@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using GameLogic;
 using GameLogic.Events;
 using GameLogic.MyApp.Exceptions;
@@ -25,6 +26,7 @@ namespace Assets.Scripts
         public GameObject prefabInfantryRed;
         public GameObject prefabTankBlue;
         public GameObject prefabTankRed;
+        public GameObject prefabUnitLabel;
 
         /// <summary>
         /// 
@@ -62,7 +64,14 @@ namespace Assets.Scripts
         /// </summary>
         private void Awake()
         {
-            _simState = new GameState(25, 25);
+            // Todo - Replace with relative path.
+            var reader =
+                new StreamReader(
+                    File.OpenRead(@"C:\Users\Anthony\University\Game-Development\Strategy-Game-Unity\map.json"));
+            string jsonString = reader.ReadToEnd();
+            reader.Close();
+
+            _simState = new GameState(jsonString);
             _simState.TurnStateMachine.Init();
             _simState.EventBus.Subscribe<TurnStateChangeEvent>(HandleTurnStateChanged);
             _simState.EventBus.Subscribe<UnitDamagedEvent>(HandleUnitDamaged);
@@ -218,6 +227,12 @@ namespace Assets.Scripts
             GameObject obj = Instantiate(prefab, new Vector3(xCoord * WORLD_SCALE + 4, 0.5f, yCoord * WORLD_SCALE + 4),
                 rotation);
             _unitObjects.Add(newUnit.Id, obj);
+
+            GameObject labelObj = Instantiate(prefabUnitLabel, obj.transform);
+            labelObj.transform.localPosition = new Vector3(0f, 10f, 0f);
+            var label = labelObj.GetComponent<UnitLabel>();
+            label.Init(this, newUnit.Id, newUnit.Type, newUnit.Team, newUnit.Strength);
+
             Debug.Log(
                 $"Unit {newUnit.Id} of type {newUnit.Type} instantiated" +
                 $" @ {xCoord},{yCoord}/{obj.transform.position}");

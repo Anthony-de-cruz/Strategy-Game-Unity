@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using GameLogic;
 using UnityEngine;
 
@@ -52,14 +51,6 @@ namespace Assets.Scripts
         }
 
         /// <summary>
-        ///     Called on game object disabled.
-        /// </summary>
-        private void OnDisable()
-        {
-            Clear();
-        }
-
-        /// <summary>
         ///
         /// </summary>
         /// <exception cref="InvalidOperationException"></exception>
@@ -92,20 +83,8 @@ namespace Assets.Scripts
                     );
 
                     tileObject.name = $"Tile_{tile.Type}_{x}:{y}";
-                    _spawnedTiles.Add(tileObject);
                 }
             }
-        }
-
-        /// <summary>
-        ///     Destroy all rendered objects.
-        /// </summary>
-        private void Clear()
-        {
-            foreach (GameObject tile in _spawnedTiles.Where(tile => tile != null))
-                Destroy(tile);
-
-            _spawnedTiles.Clear();
         }
     }
 }

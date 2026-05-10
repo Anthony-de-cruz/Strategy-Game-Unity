@@ -50,21 +50,12 @@ namespace GameLogic
         /// <summary>
         /// Constructor for GameState.
         /// </summary>
-        /// <param name="mapX"></param>
-        /// <param name="mapY"></param>
-        public GameState(uint mapX, uint mapY)
+        /// <param name="mapJsonString"></param>
+        public GameState(string mapJsonString)
         {
-            MapX = mapX;
-            MapY = mapY;
-
             EventBus = new EventBus();
             TurnStateMachine = new TurnStateMachine(EventBus);
-
-            var reader = new StreamReader(File.OpenRead(@"C:\Users\Anthony\University\Game-Development\Strategy-Game-Unity\map.json"));
-            string jsonString = reader.ReadToEnd();
-            reader.Close();
-
-            (Map, MapX, MapY) = MapLoader.LoadFromJson(jsonString);
+            (Map, MapX, MapY) = MapLoader.LoadFromJson(mapJsonString);
         }
 
         /// <summary>

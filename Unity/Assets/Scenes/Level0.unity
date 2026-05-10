@@ -153,6 +153,70 @@ Transform:
   - {fileID: 652140708}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &103949734
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 103949736}
+  - component: {fileID: 103949735}
+  m_Layer: 0
+  m_Name: MapRenderer
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &103949735
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 103949734}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbc4d39977e6e6d418f7962c6ead10b2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Assets.Scripts.MapRenderer
+  simController: {fileID: 1287698714}
+  tilePrefabs:
+  - type: 0
+    prefab: {fileID: 5955088478562067466, guid: 52208ac6237e8174b9fc1082fdab5deb, type: 3}
+  - type: 0
+    prefab: {fileID: 2883427254482294546, guid: 3abe5a6d416cd534194d2e606cd0bfc8, type: 3}
+  - type: 1
+    prefab: {fileID: 2458875805029394451, guid: d723745dc44db3943af95ed9bb9ce1f4, type: 3}
+  - type: 1
+    prefab: {fileID: 8033243660048015604, guid: a7354500ca3ebc445afb47c62a8e3fc9, type: 3}
+  - type: 1
+    prefab: {fileID: 5386728956057902258, guid: e84af5b53ff2e664b9cdce8c37bf7b5e, type: 3}
+  - type: 2
+    prefab: {fileID: 8567618188632540851, guid: cef5992982d8ff14093bd1f3a812e198, type: 3}
+  - type: 2
+    prefab: {fileID: 1647396475368106509, guid: ee71f5c0b89af994c80945cfe9d7ee1f, type: 3}
+  - type: 3
+    prefab: {fileID: 5943571264324115025, guid: d647bbfdbb6cd4940a5159a1fae7b018, type: 3}
+  tileParent: {fileID: 0}
+--- !u!4 &103949736
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 103949734}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1382462746}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &598151216
 GameObject:
   m_ObjectHideFlags: 0
@@ -918,6 +982,7 @@ MonoBehaviour:
   prefabInfantryRed: {fileID: 8392252581616053097, guid: 2e1000c69e375954786d6c5a95a5422f, type: 3}
   prefabTankBlue: {fileID: 4968707086981485087, guid: 06eb304c8166ef849b5d6abe401a0ad7, type: 3}
   prefabTankRed: {fileID: 5981137824414544235, guid: a4db3c2d74a05ac43a0d676cc2c18957, type: 3}
+  prefabUnitLabel: {fileID: 5237211191009737206, guid: 5919a35ad27208b4cb4c64e5b69e413c, type: 3}
 --- !u!4 &1287698715
 Transform:
   m_ObjectHideFlags: 0
@@ -1019,12 +1084,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1382462743}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -350, y: 0, z: -350}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 103949736}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1401091502
 GameObject:
@@ -1329,7 +1394,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 479, y: -128}
+  m_AnchoredPosition: {x: 570, y: -128}
   m_SizeDelta: {x: 200, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1540752357
@@ -1385,7 +1450,7 @@ MonoBehaviour:
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
   m_fontSizeMax: 72
-  m_fontStyle: 0
+  m_fontStyle: 1
   m_HorizontalAlignment: 1
   m_VerticalAlignment: 256
   m_textAlignment: 65535
@@ -1418,7 +1483,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: -108.89032, y: 0, z: 0, w: 12.302246}
+  m_margin: {x: -108.89032, y: 0, z: 65.00073, w: 12.302246}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   m_hasFontAssetChanged: 0
@@ -1942,5 +2007,5 @@ SceneRoots:
   - {fileID: 985344473}
   - {fileID: 42973056}
   - {fileID: 934041800}
+  - {fileID: 103949736}
   - {fileID: 705507995}
-  - {fileID: 1382462746}

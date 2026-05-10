@@ -1,3 +1,4 @@
+using System;
 using GameLogic;
 using GameLogic.Events;
 using TMPro;
@@ -127,7 +128,7 @@ namespace Assets.Scripts
                 triggerVictoryButton.gameObject.SetActive(false);
                 return;
             }
-            turnState.text = $"{TurnStateExt.ToString(simEvent.NewState)} {simEvent.TurnCounter + 1}";
+            turnState.text = $"{TurnStateExt.ToString(simEvent.NewState)}{Environment.NewLine}{simEvent.TurnCounter + 1}";
             turnState.color = simEvent.NewState switch
             {
                 TurnState.BlueTurn => Color.blue,
