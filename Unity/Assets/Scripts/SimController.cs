@@ -61,7 +61,7 @@ namespace Assets.Scripts
         /// </summary>
         private void Awake()
         {
-            _simState = new GameState(50, 50);
+            _simState = new GameState(25, 25);
             _simState.TurnStateMachine.Init();
             _simState.EventBus.Subscribe<TurnStateChangeEvent>(HandleTurnStateChanged);
             _simState.EventBus.Subscribe<UnitDamagedEvent>(HandleUnitDamaged);
@@ -74,7 +74,7 @@ namespace Assets.Scripts
 
             unit.Strength -= 2;
         }
-        
+
         /// <summary>
         ///     Raised when the selected unit changes.
         /// </summary>
@@ -172,6 +172,15 @@ namespace Assets.Scripts
         public void TestVictory()
         {
             _simState.TurnStateMachine.BlueVictory();
+        }
+
+        /// <summary>
+        ///     Get the map layout.
+        /// </summary>
+        /// <returns>A 2d array of map tiles.</returns>
+        public Tile[][] GetMap()
+        {
+            return _simState.Map;
         }
 
         /// <summary>

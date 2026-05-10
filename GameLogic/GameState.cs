@@ -60,14 +60,17 @@ namespace GameLogic
             EventBus = new EventBus();
             TurnStateMachine = new TurnStateMachine(EventBus);
 
-            // Initialize the map
+            // Initialise the map
             Map = new Tile[mapX][];
             for (int x = 0; x < mapX; x++)
             {
                 Map[x] = new Tile[mapY];
                 for (int y = 0; y < mapY; y++)
                 {
-                    Map[x][y] = new Tile(TileType.Grassland, 0);
+                    if (x == 10)
+                        Map[x][y] = new Tile(TileType.Paved, 0);
+                    else
+                        Map[x][y] = new Tile(TileType.Grassland, 0);
                 }
             }
         }
