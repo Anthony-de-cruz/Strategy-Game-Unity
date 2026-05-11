@@ -29,6 +29,21 @@ namespace Assets.Scripts
         public GameObject prefabUnitLabel;
 
         /// <summary>
+        ///     Get the map layout.
+        /// </summary>
+        public Tile[][] Map => _simState.Map;
+
+        /// <summary>
+        ///     Get map width.
+        /// </summary>
+        public uint MapX => _simState.MapX;
+
+        /// <summary>
+        ///     Get map height.
+        /// </summary>
+        public uint MapY => _simState.MapY;
+
+        /// <summary>
         /// 
         /// </summary>
         private uint SelectedId
@@ -105,9 +120,10 @@ namespace Assets.Scripts
         /// </summary>
         /// <param name="xCoord"></param>
         /// <param name="yCoord"></param>
-        public bool SelectUnitAt(int xCoord, int yCoord)
+        public bool TrySelectUnitAt(int xCoord, int yCoord)
         {
             if (TurnState != TurnState.BlueTurn) return false;
+            if (xCoord < 0 || xCoord >= _simState.MapX || yCoord < 0 || yCoord >= _simState.MapY) return false;
             uint id = _simState.Map[xCoord][yCoord].UnitId;
             if (id == 0)
             {
@@ -186,15 +202,6 @@ namespace Assets.Scripts
         public void TestVictory()
         {
             _simState.TurnStateMachine.BlueVictory();
-        }
-
-        /// <summary>
-        ///     Get the map layout.
-        /// </summary>
-        /// <returns>A 2d array of map tiles.</returns>
-        public Tile[][] GetMap()
-        {
-            return _simState.Map;
         }
 
         /// <summary>

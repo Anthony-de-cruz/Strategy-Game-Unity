@@ -47,7 +47,7 @@ namespace Assets.Scripts
             var xCoord = (int)hit.point.x / SimController.WORLD_SCALE;
             var yCoord = (int)hit.point.z / SimController.WORLD_SCALE;
             Debug.Log($"Clicked world position: {hit.point} -> {xCoord},{yCoord}");
-            simController.SelectUnitAt(xCoord, yCoord);
+            simController.TrySelectUnitAt(xCoord, yCoord);
         }
 
         /// <summary>

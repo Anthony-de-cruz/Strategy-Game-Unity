@@ -1,4 +1,7 @@
-﻿namespace GameLogic
+﻿using System;
+using GameLogic.MyApp.Exceptions;
+
+namespace GameLogic
 {
     /// <summary>
     /// Types of tiles on the map.
@@ -35,6 +38,53 @@
         {
             Type = type;
             UnitId = unitId;
+        }
+
+        /// <summary>
+        ///
+        /// </summary>
+        /// <param name="tileType"></param>
+        /// <returns></returns>
+        public static uint GetObstructionByType(TileType tileType)
+        {
+            return tileType switch
+            {
+                TileType.Paved => 0,
+                TileType.Grassland => 0,
+                TileType.Woodland => 2,
+                TileType.Building => 99,
+                _ => throw new ImpossibleStateException()
+            };
+        }
+
+        /// <summary>
+        ///
+        /// </summary>
+        /// <param name="tileType"></param>
+        /// <param name="unitType"></param>
+        /// <returns></returns>
+        public static uint GetMovementCostByType(TileType tileType, UnitType unitType)
+        {
+            return unitType switch
+            {
+                UnitType.Infantry => tileType switch
+                {
+                    TileType.Paved => 2,
+                    TileType.Grassland => 2,
+                    TileType.Woodland => 2,
+                    TileType.Building => 2,
+                    _ => throw new ImpossibleStateException()
+                },
+                UnitType.Tank => tileType switch
+                {
+                    TileType.Paved => 1,
+                    TileType.Grassland => 2,
+                    TileType.Woodland => 4,
+                    TileType.Building => 100,
+                    _ => throw new ImpossibleStateException()
+                },
+                _ => throw new ImpossibleStateException()
+            };
         }
     }
 }

@@ -23,7 +23,7 @@ namespace Assets.Scripts
         public Transform tileParent;
 
         private readonly Dictionary<TileType, List<GameObject>> _prefabsByType = new();
-        private readonly List<GameObject> _spawnedTiles = new();
+        private GameObject[][] _spawnedTiles;
 
         /// <summary>
         ///     Called on script load.
@@ -56,12 +56,13 @@ namespace Assets.Scripts
         /// <exception cref="InvalidOperationException"></exception>
         private void Render()
         {
-            Tile[][] map = simController.GetMap();
-            for (var x = 0; x < map[0].Length; x++)
+            _spawnedTiles = new GameObject[simController.MapX][];
+            for (var x = 0; x < simController.MapX; x++)
             {
-                for (var y = 0; y < map[0].Length; y++)
+                _spawnedTiles[x] = new GameObject[simController.MapY];
+                for (var y = 0; y < simController.MapY; y++)
                 {
-                    Tile tile = map[x][y];
+                    Tile tile = simController.Map[x][y];
 
                     if (!_prefabsByType.TryGetValue(tile.Type, out List<GameObject> prefabSet))
                         throw new InvalidOperationException($"No prefab assigned for tile type {tile.Type}");
@@ -81,6 +82,7 @@ namespace Assets.Scripts
                         Quaternion.Euler(0f, UnityEngine.Random.Range(0, 4) * 90f, 0f),
                         tileParent
                     );
+                    _spawnedTiles[x][y] = tileObject;
 
                     tileObject.name = $"Tile_{tile.Type}_{x}:{y}";
                 }

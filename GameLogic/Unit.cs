@@ -1,6 +1,7 @@
 ﻿using System;
 
 using GameLogic.Events;
+using GameLogic.MyApp.Exceptions;
 
 namespace GameLogic
 {
@@ -43,6 +44,26 @@ namespace GameLogic
         public UnitType Type { get; }
 
         /// <summary>
+        ///
+        /// </summary>
+        public uint CurrentActions
+        {
+            get => _currentActions;
+            set
+            {
+                if (value == _currentActions) return;
+                _eventBus.Publish(new UnitSpentActionEvent(Id, _currentActions, value));
+                _currentActions = value;
+            }
+        }
+        private uint _currentActions;
+
+        /// <summary>
+        ///     The total number of actions this unit can perform per turn.
+        /// </summary>
+        public uint Actions { get; }
+
+        /// <summary>
         /// 
         /// </summary>
         public uint Strength
@@ -82,6 +103,72 @@ namespace GameLogic
                 UnitType.Infantry => 5,
                 UnitType.Tank => 10,
                 _ => throw new NotImplementedException($"Unhandled unit type: {type}."),
+            };
+            Actions = 2;
+        }
+
+        /// <summary>
+        ///     Reset
+        /// </summary>
+        public void ResetActions()
+        {
+            CurrentActions = Actions;
+        }
+
+        /// <summary>
+        ///
+        /// </summary>
+        /// <param name="unitType"></param>
+        /// <returns></returns>
+        /// <exception cref="ImpossibleStateException"></exception>
+        public static uint GetMovementByType(UnitType unitType)
+        {
+            return unitType switch
+            {
+                UnitType.Infantry => 6,
+                UnitType.Tank => 8,
+                _ => throw new ImpossibleStateException()
+            };
+        }
+
+        /// <summary>
+        ///
+        /// </summary>
+        /// <param name="unitType"></param>
+        /// <returns></returns>
+        public static uint GetRangeByType(UnitType unitType)
+        {
+            return unitType switch
+            {
+                UnitType.Infantry => 4,
+                UnitType.Tank => 4,
+                _ => throw new ImpossibleStateException()
+            };
+        }
+
+        /// <summary>
+        ///
+        /// </summary>
+        /// <param name="unitType"></param>
+        /// <param name="targetType"></param>
+        /// <returns></returns>
+        public static uint GetDamageByType(UnitType unitType, UnitType targetType)
+        {
+            return unitType switch
+            {
+                UnitType.Infantry => targetType switch
+                {
+                    UnitType.Infantry => 2,
+                    UnitType.Tank => 2,
+                    _ => throw new ImpossibleStateException()
+                },
+                UnitType.Tank => targetType switch
+                {
+                    UnitType.Infantry => 3,
+                    UnitType.Tank => 5,
+                    _ => throw new ImpossibleStateException()
+                },
+                _ => throw new ImpossibleStateException()
             };
         }
     }

@@ -15,5 +15,10 @@ internal class Program
         reader.Close();
 
         GameState gameState = new(jsonString);
+        Ai ai =  new(gameState);
+
+        var coords = gameState.GetMoveableCoords(2, 2, UnitType.Infantry);
+        foreach (var coord in coords)
+            Console.WriteLine(coord);
     }
 }
