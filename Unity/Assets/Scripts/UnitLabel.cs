@@ -16,8 +16,8 @@ namespace Assets.Scripts
         public TMP_Text actions;
         public TMP_Text strength;
 
-        private SimController simController;
-        private uint id;
+        private SimController _simController;
+        private uint _id;
 
         /// <summary>
         ///     Called on script load.
@@ -33,14 +33,16 @@ namespace Assets.Scripts
         /// </summary>
         private void OnEnable()
         {
-            if (simController)
-                simController.OnUnitDamaged += HandleUnitDamaged;
+            if (!_simController) return;
+            _simController.OnUnitDamaged += HandleUnitDamaged;
+            _simController.OnActionSpent += HandleUnitSpentAction;
         }
 
         private void OnDisable()
         {
-            if (simController)
-                simController.OnUnitDamaged -= HandleUnitDamaged;
+            if (!_simController) return;
+            _simController.OnUnitDamaged -= HandleUnitDamaged;
+            _simController.OnActionSpent -= HandleUnitSpentAction;
         }
 
         /// <summary>
@@ -58,24 +60,29 @@ namespace Assets.Scripts
         /// </summary>
         public void Init(SimController sim, uint initId, UnitType initType, UnitTeam initTeam, uint initStrength)
         {
-            simController = sim;
-            id = initId;
+            _simController = sim;
+            _id = initId;
 
-            simController.OnUnitDamaged += HandleUnitDamaged;
+            _simController.OnUnitDamaged += HandleUnitDamaged;
+            _simController.OnActionSpent += HandleUnitSpentAction;
 
             type.text = initType.ToString().ToUpper();
             strength.text = $"STR: {initStrength}";
+            actions.text = "ACTIONS: 2/2";
         }
 
-        private void HandleUnitDamaged(UnitDamagedEvent damagedEvent)
+        private void HandleUnitDamaged(UnitDamagedEvent e)
         {
-            if (damagedEvent.UnitId != id)
-                return;
+            if (e.UnitId != _id) return;
+            if (e.NewStrength == 0) Destroy(this);
 
-            if (damagedEvent.NewStrength <= 0)
-                Destroy(this);
+            strength.text = $"STR: {e.NewStrength}";
+        }
 
-            // Update text.
+        private void HandleUnitSpentAction(UnitSpentActionEvent e)
+        {
+            if (e.UnitId != _id) return;
+            actions.text = $"ACTIONS: {e.NewActions}/2";
         }
     }
 }

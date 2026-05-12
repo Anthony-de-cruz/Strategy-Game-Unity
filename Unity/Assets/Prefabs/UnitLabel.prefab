@@ -362,7 +362,7 @@ MonoBehaviour:
   m_FallbackScreenDPI: 96
   m_DefaultSpriteDPI: 96
   m_DynamicPixelsPerUnit: 1
-  m_PresetInfoIsWorld: 0
+  m_PresetInfoIsWorld: 1
 --- !u!114 &4940431410211749882
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -392,13 +392,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9a9db420e479708468543d0351057da9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Assets.Scripts.UnitLabel
-  unitId: 0
-  unitStrength: 0
   targetCamera: {fileID: 0}
   type: {fileID: 7044709515350492934}
   actions: {fileID: 7157590703342292575}
   strength: {fileID: 3076504023589290430}
-  simController: {fileID: 0}
 --- !u!1 &7434209175199531018
 GameObject:
   m_ObjectHideFlags: 0

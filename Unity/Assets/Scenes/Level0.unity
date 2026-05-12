@@ -183,6 +183,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Assets.Scripts.MapRenderer
   simController: {fileID: 1287698714}
+  matHighlightMovement: {fileID: 2100000, guid: 67c1dece1e2ddb8419c4c5d22ae142f6, type: 2}
+  matHighlightTarget: {fileID: 2100000, guid: 67c1dece1e2ddb8419c4c5d22ae142f6, type: 2}
+  matHighlightSelection: {fileID: 2100000, guid: 67c1dece1e2ddb8419c4c5d22ae142f6, type: 2}
   tilePrefabs:
   - type: 0
     prefab: {fileID: 5955088478562067466, guid: 52208ac6237e8174b9fc1082fdab5deb, type: 3}
@@ -215,6 +218,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1382462746}
+  - {fileID: 705507995}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &598151216
@@ -602,7 +606,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 103949736}
   m_LocalEulerAnglesHint: {x: 50, y: -30, z: 0}
 --- !u!1 &934041799
 GameObject:
@@ -1045,7 +1049,7 @@ Terrain:
   m_GameObject: {fileID: 1382462743}
   m_Enabled: 1
   serializedVersion: 6
-  m_TerrainData: {fileID: 15600000, guid: e2724c6b5a3f2044fa1df12c97b7fd19, type: 2}
+  m_TerrainData: {fileID: 0}
   m_TreeDistance: 5000
   m_TreeBillboardDistance: 50
   m_TreeCrossFadeLength: 5
@@ -1998,14 +2002,58 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1933923685}
   m_CullTransparentMesh: 1
+--- !u!1 &2034812739
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2034812741}
+  - component: {fileID: 2034812740}
+  m_Layer: 0
+  m_Name: AiManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &2034812740
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2034812739}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cf538da1056d1cf44aefb59bfb8e4251, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AiManager
+--- !u!4 &2034812741
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2034812739}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
   - {fileID: 1287698715}
   - {fileID: 675823593}
+  - {fileID: 2034812741}
   - {fileID: 985344473}
   - {fileID: 42973056}
   - {fileID: 934041800}
   - {fileID: 103949736}
-  - {fileID: 705507995}

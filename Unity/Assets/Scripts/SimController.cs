@@ -90,6 +90,7 @@ namespace Assets.Scripts
             _simState.TurnStateMachine.Init();
             _simState.EventBus.Subscribe<TurnStateChangeEvent>(HandleTurnStateChanged);
             _simState.EventBus.Subscribe<UnitDamagedEvent>(HandleUnitDamaged);
+            _simState.EventBus.Subscribe<UnitSpentActionEvent>(HandleUnitSpentAction);
 
             for (var i = 0; i < 3; i++) CreateUnit(UnitTeam.Blue, UnitType.Infantry, i + 12, 10);
             for (var i = 0; i < 2; i++) CreateUnit(UnitTeam.Blue, UnitType.Tank, i + 10, 9);
@@ -116,6 +117,31 @@ namespace Assets.Scripts
         public event Action<UnitDamagedEvent> OnUnitDamaged;
 
         /// <summary>
+        ///     Raised when a unit action point is changed.
+        /// </summary>
+        public event Action<UnitSpentActionEvent> OnActionSpent;
+
+        /// <summary>
+        ///     Raised when movement coordinates are to be highlighted.
+        /// </summary>
+        public event Action<(uint, uint)[]> OnHighlightMovement;
+
+        /// <summary>
+        ///     Raised when targets are to be highlighted.
+        /// </summary>
+        public event Action<(uint, uint)[]> OnHighlightTargets;
+
+        /// <summary>
+        ///     Raised when a selected unit is to be highlighted.
+        /// </summary>
+        public event Action<(uint, uint)> OnHighlightSelection;
+
+        /// <summary>
+        ///     Raised on highlight reset.
+        /// </summary>
+        public event Action OnResetHighlight;
+
+        /// <summary>
         /// 
         /// </summary>
         /// <param name="xCoord"></param>
@@ -128,6 +154,7 @@ namespace Assets.Scripts
             if (id == 0)
             {
                 SelectedId = 0;
+                OnResetHighlight?.Invoke();
                 return false;
             }
 
@@ -138,6 +165,25 @@ namespace Assets.Scripts
             _selectedXCoord = xCoord;
             _selectedYCoord = yCoord;
             Debug.Log($"SelectUnitAt: {SelectedId}");
+
+            OnResetHighlight?.Invoke();
+            OnHighlightSelection?.Invoke(((uint)_selectedXCoord, (uint)_selectedYCoord));
+
+            if (unit.CurrentActions <= 0) return true;
+
+            // Todo - Clean up API since this is potentially obnoxious.
+            (uint, uint)[] moveableCoords = _simState.GetMoveableCoords((uint)xCoord, (uint)yCoord, unit.Type);
+            Unit[] targets = _simState.GetAttackableUnitsFromCoord((uint)xCoord, (uint)yCoord, unit.Type, unit.Team);
+            var targetCoords = new (uint, uint)[targets.Length];
+            for (var i = 0; i < targets.Length; i++)
+            {
+                _simState.TryGetUnitCoords(targets[i].Id, out (uint x, uint y) coords);
+                targetCoords[i] = (coords.x, coords.y);
+            }
+
+            OnHighlightMovement?.Invoke(moveableCoords);
+            OnHighlightTargets?.Invoke(targetCoords);
+
             return true;
         }
 
@@ -178,8 +224,9 @@ namespace Assets.Scripts
                 throw new ImpossibleStateException();
             if (_simState.Map[xCoord][yCoord].Type == TileType.Building && unit.Type == UnitType.Tank) return false;
 
-            _simState.Map[_selectedXCoord][_selectedYCoord].UnitId = 0;
-            _simState.Map[xCoord][yCoord].UnitId = SelectedId;
+            // _simState.Map[_selectedXCoord][_selectedYCoord].UnitId = 0;
+            // _simState.Map[xCoord][yCoord].UnitId = SelectedId;
+            _simState.ActionMoveUnit(unit, (uint)xCoord, (uint)yCoord);
 
             unitObj.transform.position = new Vector3(xCoord * WORLD_SCALE + 4, 0.5f, yCoord * WORLD_SCALE + 4);
 
@@ -292,6 +339,15 @@ namespace Assets.Scripts
                 $"({simEvent.OldStrength} -> {simEvent.NewStrength})"
             );
             OnUnitDamaged?.Invoke(simEvent);
+        }
+
+        private void HandleUnitSpentAction(UnitSpentActionEvent simEvent)
+        {
+            Debug.Log(
+                $"[UnitActionPoint] Unit {simEvent.UnitId} actions " +
+                $"({simEvent.OldActions} -> {simEvent.NewActions})"
+            );
+            OnActionSpent?.Invoke(simEvent);
         }
     }
 }

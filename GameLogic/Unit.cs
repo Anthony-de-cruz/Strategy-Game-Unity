@@ -105,6 +105,7 @@ namespace GameLogic
                 _ => throw new NotImplementedException($"Unhandled unit type: {type}."),
             };
             Actions = 2;
+            _currentActions = Actions;
         }
 
         /// <summary>
