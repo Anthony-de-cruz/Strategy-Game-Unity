@@ -148,12 +148,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d384f52ad3fd3774b87b0e2467e1861a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Assets.Scripts.UnitRenderer
-  simController: {fileID: 0}
-  prefabInfantryBlue: {fileID: 0}
-  prefabInfantryRed: {fileID: 0}
-  prefabTankBlue: {fileID: 0}
-  prefabTankRed: {fileID: 0}
-  prefabUnitLabel: {fileID: 0}
+  simController: {fileID: 1287698714}
+  prefabInfantryBlue: {fileID: 3584067556834337794, guid: e6ac11f707c3ece439a975e204c5175f, type: 3}
+  prefabInfantryRed: {fileID: 8392252581616053097, guid: 2e1000c69e375954786d6c5a95a5422f, type: 3}
+  prefabTankBlue: {fileID: 4968707086981485087, guid: 06eb304c8166ef849b5d6abe401a0ad7, type: 3}
+  prefabTankRed: {fileID: 5981137824414544235, guid: a4db3c2d74a05ac43a0d676cc2c18957, type: 3}
+  prefabUnitLabel: {fileID: 5237211191009737206, guid: 5919a35ad27208b4cb4c64e5b69e413c, type: 3}
 --- !u!4 &40630742
 Transform:
   m_ObjectHideFlags: 0
@@ -163,7 +163,7 @@ Transform:
   m_GameObject: {fileID: 40630740}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.21123, y: 0, z: -1.52649}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

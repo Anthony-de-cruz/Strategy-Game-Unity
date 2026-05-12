@@ -7,9 +7,10 @@
   </PropertyGroup>
 
   <Target Name="PostBuildCopy" AfterTargets="Build">
+    <MakeDir Directories="$(MSBuildProjectDirectory)\..\Unity\Assets\Plugins" />
     <Copy 
       SourceFiles="$(TargetDir)$(TargetName).dll"
-      DestinationFiles="$(SolutionDir)Unity/Assets/Plugins/$(TargetName).dll"
+      DestinationFiles="$(MSBuildProjectDirectory)\..\Unity\Assets\Plugins\$(TargetName).dll"
       SkipUnchangedFiles="true" />
   </Target>
 

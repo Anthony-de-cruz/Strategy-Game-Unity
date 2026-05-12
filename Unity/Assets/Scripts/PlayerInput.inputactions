@@ -52,7 +52,7 @@
                     "initialStateCheck": false
                 },
                 {
-                    "name": "MoveSelectedUnit",
+                    "name": "SelectUnitAction",
                     "type": "Button",
                     "id": "32bb2ad1-3c4b-43ef-b86c-c4e77f3fe164",
                     "expectedControlType": "",
@@ -212,7 +212,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": ";Keyboard&Mouse",
-                    "action": "MoveSelectedUnit",
+                    "action": "SelectUnitAction",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

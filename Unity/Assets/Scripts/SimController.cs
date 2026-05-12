@@ -54,12 +54,8 @@ namespace Assets.Scripts
         /// </summary>
         private void Awake()
         {
-            // Todo - Replace with relative path.
-            var reader =
-                new StreamReader(
-                    File.OpenRead(@"C:\Users\Anthony\University\Game-Development\Strategy-Game-Unity\map.json"));
-            string jsonString = reader.ReadToEnd();
-            reader.Close();
+            string path = Path.Combine(Application.streamingAssetsPath, "Maps", "map.json");
+            string jsonString = File.ReadAllText(path);
 
             _simState = new GameState(jsonString);
             _simState.TurnStateMachine.Init();
@@ -156,23 +152,42 @@ namespace Assets.Scripts
             return true;
         }
 
+        /// <summary>
+        ///
+        /// </summary>
+        /// <param name="xCoord"></param>
+        /// <param name="yCoord"></param>
+        /// <returns></returns>
+        public bool TrySelectUnitAction(int xCoord, int yCoord)
+        {
+            if (SelectedId == 0) return false;
+            return _simState.Map[xCoord][yCoord].UnitId != 0
+                ? TryAttackWithSelectedUnit(xCoord, yCoord)
+                : TryMoveSelectedUnit(xCoord, yCoord);
+        }
 
         /// <summary>
         /// 
         /// </summary>
         /// <param name="xCoord"></param>
         /// <param name="yCoord"></param>
-        public bool TryMoveSelectedUnit(int xCoord, int yCoord)
+        private bool TryMoveSelectedUnit(int xCoord, int yCoord)
         {
             if (SelectedId == 0) return false;
             if (_simState.Map[xCoord][yCoord].UnitId != 0) return false;
-            if (!_simState.TryGetUnit(SelectedId, out Unit unit)) throw new ImpossibleStateException();
-            UnitView unitView = new(unit, (uint)xCoord, (uint)yCoord);
+            if (!TryGetUnitById(SelectedId, out UnitView unit)) throw new ImpossibleStateException();
+            // Dijkstra is slow, in future, an exact path should be passed in which can be checked.
+            if (Array.IndexOf(GetMoveableCoords(unit), ((uint)xCoord, (uint)yCoord)) == -1) return false;
 
-            // Just assume that the move is actually possible, running full Dijkstra would be far too slow.
-            // In future, an exact path should be passed in which can be checked.
-
-            _simState.ActionMoveUnit(unit, (uint)xCoord, (uint)yCoord);
+            try
+            {
+                MoveUnit(unit, xCoord, yCoord);
+            }
+            catch (Exception e) when (e is InvalidOperationException or ArgumentOutOfRangeException)
+            {
+                Debug.LogError($"Failed to move unit {unit.Id}: {e.Message}");
+                return false;
+            }
 
             Debug.Log(
                 $"Moved selected unit {SelectedId} from" +
@@ -183,6 +198,61 @@ namespace Assets.Scripts
 
             return true;
         }
+
+        /// <summary>
+        ///
+        /// </summary>
+        /// <param name="unit"></param>
+        /// <param name="xCoord"></param>
+        /// <param name="yCoord"></param>
+        /// <exception cref="InvalidOperationException"></exception>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
+        public void MoveUnit(UnitView unit, int xCoord, int yCoord)
+        {
+            _simState.ActionMoveUnit(ViewToPtr(unit), (uint)xCoord, (uint)yCoord);
+        }
+
+        /// <summary>
+        ///
+        /// </summary>
+        /// <param name="xCoord"></param>
+        /// <param name="yCoord"></param>
+        /// <returns></returns>
+        private bool TryAttackWithSelectedUnit(int xCoord, int yCoord)
+        {
+            if (SelectedId == 0) return false;
+            if (_simState.Map[xCoord][yCoord].UnitId == 0) return false;
+            if (!TryGetUnitById(SelectedId, out UnitView unit) ||
+                !TryGetUnitById(_simState.Map[xCoord][yCoord].UnitId, out UnitView target))
+                throw new ImpossibleStateException();
+            if (Array.IndexOf(GetAttackableUnits(unit), target) == -1) return false;
+
+            try
+            {
+                AttackWithUnit(unit, target);
+            }
+            catch (Exception e) when (e is InvalidOperationException or ArgumentOutOfRangeException)
+            {
+                Debug.LogError($"Failed to attack unit {target.Id} with unit {unit.Id}: {e.Message}");
+                return false;
+            }
+
+            Debug.Log($"Attacked unit {target.Id} with {unit.Id}");
+
+            return true;
+        }
+
+        /// <summary>
+        ///
+        /// </summary>
+        /// <param name="unit"></param>
+        /// <param name="target"></param>
+        /// <exception cref="InvalidOperationException"></exception>
+        public void AttackWithUnit(UnitView unit, UnitView target)
+        {
+            _simState.ActionAttackUnit(ViewToPtr(unit), ViewToPtr(target));
+        }
+
 
         /// <summary>
         ///     Highlight required tiles based on unit selection.

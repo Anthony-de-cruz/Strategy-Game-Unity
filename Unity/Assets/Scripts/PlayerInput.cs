@@ -138,7 +138,7 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
                     ""initialStateCheck"": false
                 },
                 {
-                    ""name"": ""MoveSelectedUnit"",
+                    ""name"": ""SelectUnitAction"",
                     ""type"": ""Button"",
                     ""id"": ""32bb2ad1-3c4b-43ef-b86c-c4e77f3fe164"",
                     ""expectedControlType"": """",
@@ -298,7 +298,7 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": "";Keyboard&Mouse"",
-                    ""action"": ""MoveSelectedUnit"",
+                    ""action"": ""SelectUnitAction"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -891,7 +891,7 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
         m_Player_CameraRotateToggle = m_Player.FindAction("CameraRotateToggle", throwIfNotFound: true);
         m_Player_CameraRotate = m_Player.FindAction("CameraRotate", throwIfNotFound: true);
         m_Player_SelectUnit = m_Player.FindAction("SelectUnit", throwIfNotFound: true);
-        m_Player_MoveSelectedUnit = m_Player.FindAction("MoveSelectedUnit", throwIfNotFound: true);
+        m_Player_SelectUnitAction = m_Player.FindAction("SelectUnitAction", throwIfNotFound: true);
         // UI
         m_UI = asset.FindActionMap("UI", throwIfNotFound: true);
         m_UI_Navigate = m_UI.FindAction("Navigate", throwIfNotFound: true);
@@ -990,7 +990,7 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
     private readonly InputAction m_Player_CameraRotateToggle;
     private readonly InputAction m_Player_CameraRotate;
     private readonly InputAction m_Player_SelectUnit;
-    private readonly InputAction m_Player_MoveSelectedUnit;
+    private readonly InputAction m_Player_SelectUnitAction;
     /// <summary>
     /// Provides access to input actions defined in input action map "Player".
     /// </summary>
@@ -1023,9 +1023,9 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
         /// </summary>
         public InputAction @SelectUnit => m_Wrapper.m_Player_SelectUnit;
         /// <summary>
-        /// Provides access to the underlying input action "Player/MoveSelectedUnit".
+        /// Provides access to the underlying input action "Player/SelectUnitAction".
         /// </summary>
-        public InputAction @MoveSelectedUnit => m_Wrapper.m_Player_MoveSelectedUnit;
+        public InputAction @SelectUnitAction => m_Wrapper.m_Player_SelectUnitAction;
         /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
@@ -1067,9 +1067,9 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
             @SelectUnit.started += instance.OnSelectUnit;
             @SelectUnit.performed += instance.OnSelectUnit;
             @SelectUnit.canceled += instance.OnSelectUnit;
-            @MoveSelectedUnit.started += instance.OnMoveSelectedUnit;
-            @MoveSelectedUnit.performed += instance.OnMoveSelectedUnit;
-            @MoveSelectedUnit.canceled += instance.OnMoveSelectedUnit;
+            @SelectUnitAction.started += instance.OnSelectUnitAction;
+            @SelectUnitAction.performed += instance.OnSelectUnitAction;
+            @SelectUnitAction.canceled += instance.OnSelectUnitAction;
         }
 
         /// <summary>
@@ -1096,9 +1096,9 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
             @SelectUnit.started -= instance.OnSelectUnit;
             @SelectUnit.performed -= instance.OnSelectUnit;
             @SelectUnit.canceled -= instance.OnSelectUnit;
-            @MoveSelectedUnit.started -= instance.OnMoveSelectedUnit;
-            @MoveSelectedUnit.performed -= instance.OnMoveSelectedUnit;
-            @MoveSelectedUnit.canceled -= instance.OnMoveSelectedUnit;
+            @SelectUnitAction.started -= instance.OnSelectUnitAction;
+            @SelectUnitAction.performed -= instance.OnSelectUnitAction;
+            @SelectUnitAction.canceled -= instance.OnSelectUnitAction;
         }
 
         /// <summary>
@@ -1435,12 +1435,12 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnSelectUnit(InputAction.CallbackContext context);
         /// <summary>
-        /// Method invoked when associated input action "MoveSelectedUnit" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// Method invoked when associated input action "SelectUnitAction" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
         /// </summary>
         /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
-        void OnMoveSelectedUnit(InputAction.CallbackContext context);
+        void OnSelectUnitAction(InputAction.CallbackContext context);
     }
     /// <summary>
     /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "UI" which allows adding and removing callbacks.

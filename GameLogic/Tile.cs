@@ -51,7 +51,7 @@ namespace GameLogic
             {
                 TileType.Paved => 0,
                 TileType.Grassland => 0,
-                TileType.Woodland => 2,
+                TileType.Woodland => 3,
                 TileType.Building => 99,
                 _ => throw new ImpossibleStateException()
             };

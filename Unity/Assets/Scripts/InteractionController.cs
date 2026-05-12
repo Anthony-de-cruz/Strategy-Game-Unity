@@ -13,7 +13,7 @@ namespace Assets.Scripts
         public SimController simController;
 
         private bool _isSelectingUnit;
-        private bool _isSelectingMovePosition;
+        private bool _isSelectingUnitAction;
         
         /// <summary>
         ///     Called on game object enabled.
@@ -21,7 +21,7 @@ namespace Assets.Scripts
         private void OnEnable()
         {
             inputManager.Input.Player.SelectUnit.performed += _ => _isSelectingUnit = true;
-            inputManager.Input.Player.MoveSelectedUnit.performed += _ => _isSelectingMovePosition = true;
+            inputManager.Input.Player.SelectUnitAction.performed += _ => _isSelectingUnitAction = true;
         }
         
         /// <summary>
@@ -30,7 +30,7 @@ namespace Assets.Scripts
         private void Update()
         {
             HandleSelectUnit();
-            HandleSelectingMovePosition();
+            HandleSelectingUnitAction();
         }
 
         /// <summary>
@@ -44,8 +44,8 @@ namespace Assets.Scripts
                     Mouse.current.position.ReadValue()), out RaycastHit hit))
                 return;
 
-            var xCoord = (int)hit.point.x / SimController.WORLD_SCALE;
-            var yCoord = (int)hit.point.z / SimController.WORLD_SCALE;
+            int xCoord = (int)hit.point.x / SimController.WORLD_SCALE;
+            int yCoord = (int)hit.point.z / SimController.WORLD_SCALE;
             Debug.Log($"Clicked world position: {hit.point} -> {xCoord},{yCoord}");
             simController.TrySelectUnitAt(xCoord, yCoord);
         }
@@ -53,19 +53,19 @@ namespace Assets.Scripts
         /// <summary>
         /// 
         /// </summary>
-        private void HandleSelectingMovePosition()
+        private void HandleSelectingUnitAction()
         {
-            if (!_isSelectingMovePosition) return;
-            _isSelectingMovePosition = false;
+            if (!_isSelectingUnitAction) return;
+            _isSelectingUnitAction = false;
             
             if (!Physics.Raycast(interactionRaycastCamera.ScreenPointToRay(
                     Mouse.current.position.ReadValue()), out RaycastHit hit))
                 return;
-            Debug.Log($"Clicked world position: {hit.point}");
-            
-            var xCoord = (int)hit.point.x / SimController.WORLD_SCALE;
-            var yCoord = (int)hit.point.z / SimController.WORLD_SCALE;
-            simController.TryMoveSelectedUnit(xCoord, yCoord);
+
+            int xCoord = (int)hit.point.x / SimController.WORLD_SCALE;
+            int yCoord = (int)hit.point.z / SimController.WORLD_SCALE;
+            Debug.Log($"Clicked world position: {hit.point} -> {xCoord},{yCoord}");
+            simController.TrySelectUnitAction(xCoord, yCoord);
         }
     }
 }

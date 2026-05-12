@@ -164,7 +164,7 @@ namespace Assets.Scripts
             var targetsCoords = new (uint, uint)[targets.Length];
             for (var i = 0; i < targets.Length; i++)
                 targetsCoords[i] = (targets[i].X, targets[i].Y);
-            RenderTileHighlight(targetsCoords, highlightMovementColour);
+            RenderTileHighlight(targetsCoords, highlightTargetColour);
         }
 
         /// <summary>

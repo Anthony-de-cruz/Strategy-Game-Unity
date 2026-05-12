@@ -63,6 +63,7 @@ namespace GameLogic
             for (var i = 0; i < 2; i++) CreateUnit(UnitTeam.Blue, UnitType.Tank, i + 10, 9);
             for (var i = 0; i < 3; i++) CreateUnit(UnitTeam.Red, UnitType.Tank, i + 12, 15);
             for (var i = 0; i < 1; i++) CreateUnit(UnitTeam.Red, UnitType.Infantry, i + 16, 16);
+            for (var i = 0; i < 1; i++) CreateUnit(UnitTeam.Red, UnitType.Infantry, i + 16, 22);
         }
 
         ///////////////////
@@ -208,7 +209,7 @@ namespace GameLogic
                 if (t.Team == unitTeam) continue;
                 if (!TryGetUnitCoords(t.Id, out (uint X, uint Y) targetCoords)) throw new ImpossibleStateException();
                 if (targetCoords == (xCoord, yCoord)) continue;
-                if (!IsWithinRange(xCoord, yCoord, targetCoords.X, targetCoords.Y, range)) continue;
+                //if (!IsWithinRange(xCoord, yCoord, targetCoords.X, targetCoords.Y, range)) continue;
                 if (!HasLineOfSight(xCoord, yCoord, targetCoords.X, targetCoords.Y, range)) continue;
 
                 units.Add(t);
@@ -379,8 +380,10 @@ namespace GameLogic
             if (!TryGetUnitCoords(attacker.Id, out (uint X, uint Y) attackerCoords) ||
                 !TryGetUnitCoords(target.Id, out (uint X, uint Y) targetCoords))
                 throw new ImpossibleStateException();
-            if (!IsWithinRange(attackerCoords.X, attackerCoords.Y, targetCoords.X, targetCoords.Y, range) ||
-                !HasLineOfSight(attackerCoords.X, attackerCoords.Y, targetCoords.X, targetCoords.Y, range))
+            // if (!IsWithinRange(attackerCoords.X, attackerCoords.Y, targetCoords.X, targetCoords.Y, range) ||
+            //     !HasLineOfSight(attackerCoords.X, attackerCoords.Y, targetCoords.X, targetCoords.Y, range))
+            //     throw new InvalidOperationException();
+            if (!HasLineOfSight(attackerCoords.X, attackerCoords.Y, targetCoords.X, targetCoords.Y, range))
                 throw new InvalidOperationException();
 
             TurnStateMachine.BeginAction();
