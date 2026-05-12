@@ -55,6 +55,13 @@ namespace Assets.Scripts
             );
         }
 
+        private void OnDestroy()
+        {
+            if (!_simController) return;
+            _simController.OnUnitDamaged -= HandleUnitDamaged;
+            _simController.OnActionSpent -= HandleUnitSpentAction;
+        }
+
         /// <summary>
         ///
         /// </summary>

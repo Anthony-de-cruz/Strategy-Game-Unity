@@ -46,22 +46,17 @@ namespace GameLogic
         /// <summary>
         ///
         /// </summary>
-        public uint CurrentActions
+        public uint Actions
         {
-            get => _currentActions;
+            get => _actions;
             set
             {
-                if (value == _currentActions) return;
-                _eventBus.Publish(new UnitSpentActionEvent(Id, _currentActions, value));
-                _currentActions = value;
+                if (value == _actions) return;
+                _eventBus.Publish(new UnitSpentActionEvent(Id, _actions, value));
+                _actions = value;
             }
         }
-        private uint _currentActions;
-
-        /// <summary>
-        ///     The total number of actions this unit can perform per turn.
-        /// </summary>
-        public uint Actions { get; }
+        private uint _actions;
 
         /// <summary>
         /// 
@@ -104,8 +99,7 @@ namespace GameLogic
                 UnitType.Tank => 10,
                 _ => throw new NotImplementedException($"Unhandled unit type: {type}."),
             };
-            Actions = 2;
-            _currentActions = Actions;
+            _actions = 2;
         }
 
         /// <summary>
@@ -113,7 +107,7 @@ namespace GameLogic
         /// </summary>
         public void ResetActions()
         {
-            CurrentActions = Actions;
+            Actions = 2;
         }
 
         /// <summary>
@@ -171,6 +165,32 @@ namespace GameLogic
                 },
                 _ => throw new ImpossibleStateException()
             };
+        }
+    }
+
+    /// <summary>
+    /// Readonly snapshot of a unit.
+    /// Used for frontend state queries, AI drivers and tests.
+    /// </summary>
+    public readonly struct UnitView
+    {
+        public readonly uint Id;
+        public readonly UnitTeam Team;
+        public readonly UnitType Type;
+        public readonly uint Strength;
+        public readonly uint Actions;
+        public readonly uint X;
+        public readonly uint Y;
+
+        public UnitView(Unit unit, uint xCoord, uint yCoord)
+        {
+            Id = unit.Id;
+            Team = unit.Team;
+            Type = unit.Type;
+            Strength = unit.Strength;
+            Actions = unit.Actions;
+            X = xCoord;
+            Y = yCoord;
         }
     }
 }

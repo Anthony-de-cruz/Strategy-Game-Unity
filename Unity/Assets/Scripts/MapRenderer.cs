@@ -158,10 +158,13 @@ namespace Assets.Scripts
         /// <summary>
         ///
         /// </summary>
-        /// <param name="tiles"></param>
-        private void HandleHighlightTargets((uint, uint)[] tiles)
+        /// <param name="targets"></param>
+        private void HandleHighlightTargets(UnitView[] targets)
         {
-            RenderTileHighlight(tiles, highlightMovementColour);
+            var targetsCoords = new (uint, uint)[targets.Length];
+            for (var i = 0; i < targets.Length; i++)
+                targetsCoords[i] = (targets[i].X, targets[i].Y);
+            RenderTileHighlight(targetsCoords, highlightMovementColour);
         }
 
         /// <summary>

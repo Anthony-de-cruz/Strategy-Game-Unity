@@ -1,5 +1,4 @@
-﻿using System.Linq;
-using GameLogic.Events;
+﻿using GameLogic.Events;
 
 namespace GameLogic
 {
@@ -39,12 +38,12 @@ namespace GameLogic
 
             foreach (Unit unit in units)
             {
-                while (unit.CurrentActions > 0)
+                while (unit.Actions > 0)
                 {
-                    if (!_gameState.TryGetUnitCoords(unit.Id, out (uint X, uint Y) coords)) break;
-                    Unit[] attackableUnits = _gameState.GetAttackableUnitsFromCoord(coords.X, coords.Y, unit.Type, unit.Team);
-                    if (attackableUnits.Length == 0) break;
-                    _gameState.ActionAttackUnit(unit, attackableUnits[0]);
+                    // if (!_gameState.TryGetUnitCoords(unit.Id, out (uint X, uint Y) coords)) break;
+                    // //Unit[] attackableUnits = _gameState.GetAttackableUnitsFromCoord(coords.X, coords.Y, unit.Type, unit.Team);
+                    // if (attackableUnits.Length == 0) break;
+                    // _gameState.ActionAttackUnit(unit, attackableUnits[0]);
                 }
             }
 

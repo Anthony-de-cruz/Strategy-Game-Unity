@@ -1,6 +1,4 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.IO;
 using GameLogic;
 using GameLogic.Events;
@@ -22,29 +20,8 @@ namespace Assets.Scripts
         /// </summary>
         public static readonly int WORLD_SCALE = 10;
 
-        public GameObject prefabInfantryBlue;
-        public GameObject prefabInfantryRed;
-        public GameObject prefabTankBlue;
-        public GameObject prefabTankRed;
-        public GameObject prefabUnitLabel;
-
         /// <summary>
-        ///     Get the map layout.
-        /// </summary>
-        public Tile[][] Map => _simState.Map;
-
-        /// <summary>
-        ///     Get map width.
-        /// </summary>
-        public uint MapX => _simState.MapX;
-
-        /// <summary>
-        ///     Get map height.
-        /// </summary>
-        public uint MapY => _simState.MapY;
-
-        /// <summary>
-        /// 
+        ///
         /// </summary>
         private uint SelectedId
         {
@@ -61,8 +38,6 @@ namespace Assets.Scripts
         private int _selectedXCoord;
         private int _selectedYCoord;
 
-        private readonly Dictionary<uint, GameObject> _unitObjects = new();
-
         private UnitTeam _clientTeam = UnitTeam.Blue;
 
         /// <summary>
@@ -70,9 +45,9 @@ namespace Assets.Scripts
         /// </summary>
         private GameState _simState;
 
-        /// <summary>
-        /// </summary>
-        public TurnState TurnState => _simState.TurnStateMachine.State;
+        ///////////////////
+        // UNITY DRIVERS //
+        ///////////////////
 
         /// <summary>
         ///     Called on script load.
@@ -90,16 +65,20 @@ namespace Assets.Scripts
             _simState.TurnStateMachine.Init();
             _simState.EventBus.Subscribe<TurnStateChangeEvent>(HandleTurnStateChanged);
             _simState.EventBus.Subscribe<UnitDamagedEvent>(HandleUnitDamaged);
+            _simState.EventBus.Subscribe<UnitMovedEvent>(HandleUnitMoved);
             _simState.EventBus.Subscribe<UnitSpentActionEvent>(HandleUnitSpentAction);
 
-            for (var i = 0; i < 3; i++) CreateUnit(UnitTeam.Blue, UnitType.Infantry, i + 12, 10);
-            for (var i = 0; i < 2; i++) CreateUnit(UnitTeam.Blue, UnitType.Tank, i + 10, 9);
-            for (var i = 0; i < 3; i++) CreateUnit(UnitTeam.Red, UnitType.Tank, i + 11, 15);
+            // for (var i = 0; i < 3; i++) CreateUnit(UnitTeam.Blue, UnitType.Infantry, i + 12, 10);
+            // for (var i = 0; i < 2; i++) CreateUnit(UnitTeam.Blue, UnitType.Tank, i + 10, 9);
+            // for (var i = 0; i < 3; i++) CreateUnit(UnitTeam.Red, UnitType.Tank, i + 11, 15);
 
-            _simState.TryGetUnit(1, out Unit unit);
-
-            unit.Strength -= 2;
+            if (_simState.TryGetUnit(1, out Unit unit))
+                unit.Strength -= 2;
         }
+
+        ///////////////////
+        // STATE DRIVERS //
+        ///////////////////
 
         /// <summary>
         ///     Raised when the selected unit changes.
@@ -117,6 +96,11 @@ namespace Assets.Scripts
         public event Action<UnitDamagedEvent> OnUnitDamaged;
 
         /// <summary>
+        ///     Raised when a unit is moved.
+        /// </summary>
+        public event Action<UnitMovedEvent> OnUnitMoved;
+
+        /// <summary>
         ///     Raised when a unit action point is changed.
         /// </summary>
         public event Action<UnitSpentActionEvent> OnActionSpent;
@@ -129,7 +113,7 @@ namespace Assets.Scripts
         /// <summary>
         ///     Raised when targets are to be highlighted.
         /// </summary>
-        public event Action<(uint, uint)[]> OnHighlightTargets;
+        public event Action<UnitView[]> OnHighlightTargets;
 
         /// <summary>
         ///     Raised when a selected unit is to be highlighted.
@@ -151,91 +135,74 @@ namespace Assets.Scripts
             if (TurnState != TurnState.BlueTurn) return false;
             if (xCoord < 0 || xCoord >= _simState.MapX || yCoord < 0 || yCoord >= _simState.MapY) return false;
             uint id = _simState.Map[xCoord][yCoord].UnitId;
+
+            // Deselect.
             if (id == 0)
             {
                 SelectedId = 0;
-                OnResetHighlight?.Invoke();
+                SetTileHighlights();
                 return false;
             }
 
-            if (!_simState.TryGetUnit(id, out Unit unit)) throw new ImpossibleStateException();
+            if (!TryGetUnitById(id, out UnitView unit)) throw new ImpossibleStateException();
             if (unit.Team != _clientTeam) return false;
 
             SelectedId = id;
             _selectedXCoord = xCoord;
             _selectedYCoord = yCoord;
             Debug.Log($"SelectUnitAt: {SelectedId}");
-
-            OnResetHighlight?.Invoke();
-            OnHighlightSelection?.Invoke(((uint)_selectedXCoord, (uint)_selectedYCoord));
-
-            if (unit.CurrentActions <= 0) return true;
-
-            // Todo - Clean up API since this is potentially obnoxious.
-            (uint, uint)[] moveableCoords = _simState.GetMoveableCoords((uint)xCoord, (uint)yCoord, unit.Type);
-            Unit[] targets = _simState.GetAttackableUnitsFromCoord((uint)xCoord, (uint)yCoord, unit.Type, unit.Team);
-            var targetCoords = new (uint, uint)[targets.Length];
-            for (var i = 0; i < targets.Length; i++)
-            {
-                _simState.TryGetUnitCoords(targets[i].Id, out (uint x, uint y) coords);
-                targetCoords[i] = (coords.x, coords.y);
-            }
-
-            OnHighlightMovement?.Invoke(moveableCoords);
-            OnHighlightTargets?.Invoke(targetCoords);
+            SetTileHighlights();
 
             return true;
         }
+
 
         /// <summary>
         /// 
         /// </summary>
         /// <param name="xCoord"></param>
         /// <param name="yCoord"></param>
-        public bool EnemySelectUnitAt(int xCoord, int yCoord)
-        {
-            uint id = _simState.Map[xCoord][yCoord].UnitId;
-            if (id == 0)
-            {
-                SelectedId = 0;
-                return false;
-            }
-
-            if (!_simState.TryGetUnit(id, out Unit unit)) throw new ImpossibleStateException();
-
-            _selectedId = id;
-            _selectedXCoord = xCoord;
-            _selectedYCoord = yCoord;
-            Debug.Log($"SelectUnitAt: {SelectedId}");
-            return true;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="xCoord"></param>
-        /// <param name="yCoord"></param>
-        public bool TryMoveSelectedUnitTo(int xCoord, int yCoord)
+        public bool TryMoveSelectedUnit(int xCoord, int yCoord)
         {
             if (SelectedId == 0) return false;
             if (_simState.Map[xCoord][yCoord].UnitId != 0) return false;
-            if (!_simState.TryGetUnit(SelectedId, out Unit unit) ||
-                !_unitObjects.TryGetValue(SelectedId, out GameObject unitObj))
-                throw new ImpossibleStateException();
-            if (_simState.Map[xCoord][yCoord].Type == TileType.Building && unit.Type == UnitType.Tank) return false;
+            if (!_simState.TryGetUnit(SelectedId, out Unit unit)) throw new ImpossibleStateException();
+            UnitView unitView = new(unit, (uint)xCoord, (uint)yCoord);
 
-            // _simState.Map[_selectedXCoord][_selectedYCoord].UnitId = 0;
-            // _simState.Map[xCoord][yCoord].UnitId = SelectedId;
+            // Just assume that the move is actually possible, running full Dijkstra would be far too slow.
+            // In future, an exact path should be passed in which can be checked.
+
             _simState.ActionMoveUnit(unit, (uint)xCoord, (uint)yCoord);
-
-            unitObj.transform.position = new Vector3(xCoord * WORLD_SCALE + 4, 0.5f, yCoord * WORLD_SCALE + 4);
 
             Debug.Log(
                 $"Moved selected unit {SelectedId} from" +
                 $" {_selectedXCoord},{_selectedYCoord} -> {xCoord},{yCoord}");
             _selectedXCoord = xCoord;
             _selectedYCoord = yCoord;
+            SetTileHighlights();
+
             return true;
+        }
+
+        /// <summary>
+        ///     Highlight required tiles based on unit selection.
+        /// </summary>
+        private void SetTileHighlights()
+        {
+            OnResetHighlight?.Invoke();
+
+            if (SelectedId == 0) return;
+
+            if (!TryGetUnitById(SelectedId, out UnitView unit)) throw new ImpossibleStateException();
+
+            OnHighlightSelection?.Invoke((unit.X, unit.Y));
+            if (unit.Actions == 0) return;
+
+            (uint, uint)[] moveableCoords = GetMoveableCoords(unit);
+            if (moveableCoords.Length > 0) OnHighlightMovement?.Invoke(moveableCoords);
+
+            UnitView[] targets = GetAttackableUnits(unit);
+            if (targets.Length > 0) OnHighlightTargets?.Invoke(targets);
         }
 
         /// <summary>
@@ -251,67 +218,150 @@ namespace Assets.Scripts
             _simState.TurnStateMachine.BlueVictory();
         }
 
+
+        // /// <summary>
+        // ///
+        // /// </summary>
+        // /// <param name="xCoord"></param>
+        // /// <param name="yCoord"></param>
+        // public bool EnemySelectUnitAt(int xCoord, int yCoord)
+        // {
+        //     uint id = _simState.Map[xCoord][yCoord].UnitId;
+        //     if (id == 0)
+        //     {
+        //         SelectedId = 0;
+        //         return false;
+        //     }
+        //
+        //     if (!_simState.TryGetUnit(id, out Unit unit)) throw new ImpossibleStateException();
+        //
+        //     _selectedId = id;
+        //     _selectedXCoord = xCoord;
+        //     _selectedYCoord = yCoord;
+        //     Debug.Log($"SelectUnitAt: {SelectedId}");
+        //     return true;
+        // }
+
+        // /// <summary>
+        // /// </summary>
+        // private void MockRedTurnStart()
+        // {
+        //     StartCoroutine(MockRedTurnEndCoroutine());
+        // }
+        //
+        // /// <summary>
+        // /// </summary>
+        // /// <returns></returns>
+        // private IEnumerator MockRedTurnEndCoroutine()
+        // {
+        //     yield return new WaitForSeconds(1f);
+        //
+        //     EnemySelectUnitAt(13, 15 - _simState.TurnStateMachine.TurnCounter);
+        //     TryMoveSelectedUnitTo(13, 14 - _simState.TurnStateMachine.TurnCounter);
+        //
+        //     yield return new WaitForSeconds(1f);
+        //     _simState.TurnStateMachine.EndTurn();
+        // }
+
+
+        ////////////////////
+        // STATE QUERIES //
+        ///////////////////
+
         /// <summary>
+        ///     Get the map layout.
+        /// </summary>
+        public Tile[][] Map => _simState.Map;
+
+        /// <summary>
+        ///     Get map width.
+        /// </summary>
+        public uint MapX => _simState.MapX;
+
+        /// <summary>
+        ///     Get map height.
+        /// </summary>
+        public uint MapY => _simState.MapY;
+
+        /// <summary>
+        ///     Get turn state.
+        /// </summary>
+        public TurnState TurnState => _simState.TurnStateMachine.State;
+
+        /// <summary>
+        ///
+        /// </summary>
+        /// <param name="unitId"></param>
+        /// <param name="unit"></param>
+        /// <returns></returns>
+        public bool TryGetUnitById(uint unitId, out UnitView unit)
+        {
+            if (!_simState.TryGetUnit(unitId, out Unit u))
+            {
+                unit = default;
+                return false;
+            }
+
+            if (!_simState.TryGetUnitCoords(u.Id, out (uint X, uint Y) coords))
+                throw new ImpossibleStateException();
+            unit = new UnitView(u, coords.X, coords.Y);
+            return true;
+        }
+
+        /// <summary>
+        ///
         /// </summary>
         /// <param name="team"></param>
-        /// <param name="type"></param>
-        /// <param name="xCoord"></param>
-        /// <param name="yCoord"></param>
         /// <returns></returns>
-        private void CreateUnit(UnitTeam team, UnitType type, int xCoord, int yCoord)
+        public UnitView[] GetUnitsByTeam(UnitTeam team)
         {
-            Unit newUnit = _simState.CreateUnit(team, type, xCoord, yCoord);
-
-            GameObject prefab = (type, team) switch
+            Unit[] units = _simState.GetUnitsByTeam(team);
+            var views = new UnitView[units.Length];
+            for (var i = 0; i < units.Length; i++)
             {
-                (UnitType.Infantry, UnitTeam.Blue) => prefabInfantryBlue,
-                (UnitType.Infantry, UnitTeam.Red) => prefabInfantryRed,
-                (UnitType.Tank, UnitTeam.Blue) => prefabTankBlue,
-                (UnitType.Tank, UnitTeam.Red) => prefabTankRed,
-                _ => throw new NotImplementedException()
-            };
+                if (!_simState.TryGetUnitCoords(units[i].Id, out (uint X, uint Y) coords))
+                    throw new ImpossibleStateException();
+                views[i] = new UnitView(units[i], coords.X, coords.Y);
+            }
 
-            Quaternion rotation = team switch
-            {
-                UnitTeam.Blue => Quaternion.Euler(0f, 0f, 0f),
-                UnitTeam.Red => Quaternion.Euler(0f, 180f, 0f),
-                _ => throw new NotImplementedException()
-            };
-
-            GameObject obj = Instantiate(prefab, new Vector3(xCoord * WORLD_SCALE + 4, 0.5f, yCoord * WORLD_SCALE + 4),
-                rotation);
-            _unitObjects.Add(newUnit.Id, obj);
-
-            GameObject labelObj = Instantiate(prefabUnitLabel, obj.transform);
-            labelObj.transform.localPosition = new Vector3(0f, 10f, 0f);
-            var label = labelObj.GetComponent<UnitLabel>();
-            label.Init(this, newUnit.Id, newUnit.Type, newUnit.Team, newUnit.Strength);
-
-            Debug.Log(
-                $"Unit {newUnit.Id} of type {newUnit.Type} instantiated" +
-                $" @ {xCoord},{yCoord}/{obj.transform.position}");
+            return views;
         }
 
         /// <summary>
+        ///
         /// </summary>
-        private void MockRedTurnStart()
-        {
-            StartCoroutine(MockRedTurnEndCoroutine());
-        }
+        /// <param name="unit"></param>
+        /// <returns></returns>
+        public (uint, uint)[] GetMoveableCoords(UnitView unit) =>
+            _simState.GetMoveableCoords(unit.X, unit.Y, unit.Type);
 
         /// <summary>
+        ///
         /// </summary>
+        /// <param name="unit"></param>
         /// <returns></returns>
-        private IEnumerator MockRedTurnEndCoroutine()
+        public UnitView[] GetAttackableUnits(UnitView unit)
         {
-            yield return new WaitForSeconds(1f);
+            Unit[] units = _simState.GetAttackableUnitsFromCoord(unit.X, unit.Y, unit.Type, unit.Team);
+            var views = new UnitView[units.Length];
+            for (var i = 0; i < units.Length; i++)
+            {
+                if (!_simState.TryGetUnitCoords(units[i].Id, out (uint X, uint Y) coords))
+                    throw new ImpossibleStateException();
+                views[i] = new UnitView(units[i], coords.X, coords.Y);
+            }
 
-            EnemySelectUnitAt(13, 15 - _simState.TurnStateMachine.TurnCounter);
-            TryMoveSelectedUnitTo(13, 14 - _simState.TurnStateMachine.TurnCounter);
-
-            yield return new WaitForSeconds(1f);
-            _simState.TurnStateMachine.EndTurn();
+            return views;
         }
+
+        private Unit ViewToPtr(UnitView unit)
+            => !_simState.TryGetUnit(unit.Id, out Unit u)
+                ? throw new ImpossibleStateException()
+                : u;
+
+        ////////////////////
+        // EVENT HANDLING //
+        ////////////////////
 
         /// <summary>
         ///     Forwards raised sim <see cref="TurnStateChangeEvent" />.
@@ -323,8 +373,8 @@ namespace Assets.Scripts
             OnTurnStateChanged?.Invoke(simEvent);
 
             // Mock red turn.
-            if (simEvent.NewState == TurnState.RedTurn)
-                MockRedTurnStart();
+            // if (simEvent.NewState == TurnState.RedTurn)
+            //     MockRedTurnStart();
         }
 
         /// <summary>
@@ -339,6 +389,20 @@ namespace Assets.Scripts
                 $"({simEvent.OldStrength} -> {simEvent.NewStrength})"
             );
             OnUnitDamaged?.Invoke(simEvent);
+        }
+
+        /// <summary>
+        ///     Forwards raised sim <see cref="UnitMovedEvent" />.
+        /// </summary>
+        /// <param name="simEvent"></param>
+        private void HandleUnitMoved(UnitMovedEvent simEvent)
+        {
+            Debug.Log(
+                $"[UnitMoved] Unit {simEvent.UnitId} moved " +
+                $"{simEvent.OldCoords.Item1},{simEvent.OldCoords.Item2}) -> " +
+                $"({simEvent.NewCoords.Item1},{simEvent.NewCoords.Item2})"
+            );
+            OnUnitMoved?.Invoke(simEvent);
         }
 
         private void HandleUnitSpentAction(UnitSpentActionEvent simEvent)

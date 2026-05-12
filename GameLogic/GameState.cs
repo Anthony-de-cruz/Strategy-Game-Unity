@@ -6,9 +6,9 @@ using GameLogic.MyApp.Exceptions;
 
 namespace GameLogic
 {
-    /// <summary>
-    /// Represents the current state of the game.
-    /// </summary>
+    ///  <summary>
+    ///  Represents the current state of the game.
+    ///  </summary>
     public class GameState
     {
         /// <summary>
@@ -58,44 +58,16 @@ namespace GameLogic
             TurnStateMachine = new TurnStateMachine(EventBus);
             EventBus.Subscribe<UnitDamagedEvent>(HandleUnitDamaged);
             EventBus.Subscribe<TurnStateChangeEvent>(HandleTurnStateChange);
+
+            for (var i = 0; i < 3; i++) CreateUnit(UnitTeam.Blue, UnitType.Infantry, i + 12, 10);
+            for (var i = 0; i < 2; i++) CreateUnit(UnitTeam.Blue, UnitType.Tank, i + 10, 9);
+            for (var i = 0; i < 3; i++) CreateUnit(UnitTeam.Red, UnitType.Tank, i + 12, 15);
+            for (var i = 0; i < 1; i++) CreateUnit(UnitTeam.Red, UnitType.Infantry, i + 16, 16);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="team"></param>
-        /// <param name="type"></param>
-        /// <param name="xCoord"></param>
-        /// <param name="yCoord"></param>
-        /// <returns></returns>
-        /// <exception cref="ArgumentOutOfRangeException">Invalid coordinates.</exception>
-        /// <exception cref="InvalidOperationException">Coordinate already occupied.</exception>
-        public Unit CreateUnit(UnitTeam team, UnitType type, int xCoord, int yCoord)
-        {
-            if (xCoord < 0 || xCoord >= Map.Length)
-                throw new ArgumentOutOfRangeException(
-                    $"xCoord ({xCoord}) must be between 0 and {Map.Length}");
-
-            if (yCoord < 0 || yCoord >= Map[0].Length)
-                throw new ArgumentOutOfRangeException(
-                    $"yCoord ({yCoord}) must be between 0 and {Map[0].Length}");
-
-            if (Map[xCoord][yCoord].UnitId != 0)
-                throw new InvalidOperationException(
-                    $"Cannot create unit type {type} @ {xCoord},{yCoord}," +
-                    $" tile already occupied by unit {Map[xCoord][yCoord].UnitId}.");
-
-            if (TryGetUnit(_unitIdCounter, out _))
-                throw new ImpossibleStateException(
-                    $"Cannot create unit {_unitIdCounter}," +
-                    " this unit already exists.");
-
-            var newUnit = new Unit(_unitIdCounter, team, type, EventBus);
-            _units.Add(newUnit);
-            Map[xCoord][yCoord].UnitId = _unitIdCounter;
-            ++_unitIdCounter;
-            return newUnit;
-        }
+        ///////////////////
+        // STATE QUERIES //
+        ///////////////////
 
         /// <summary>
         /// 
@@ -215,7 +187,6 @@ namespace GameLogic
                 yield return (xCoord, yCoord + 1);
         }
 
-
         /// <summary>
         ///
         /// </summary>
@@ -329,6 +300,10 @@ namespace GameLogic
             }
         }
 
+        ///////////////////
+        // STATE DRIVERS //
+        ///////////////////
+
         /// <summary>
         ///
         /// </summary>
@@ -356,7 +331,7 @@ namespace GameLogic
                 throw new ArgumentOutOfRangeException(
                     $"Coords ({xCoord},{yCoord}) must be within map bounds ({MapX},{MapY}).");
 
-            if (unit.CurrentActions <= 0 ||
+            if (unit.Actions <= 0 ||
                 Map[xCoord][yCoord].UnitId != 0)
                 throw new InvalidOperationException();
 
@@ -368,7 +343,7 @@ namespace GameLogic
             TryGetUnitCoords(unit.Id, out (uint X, uint Y) oldCoords);
             Map[oldCoords.X][oldCoords.Y].UnitId = 0;
             Map[xCoord][yCoord].UnitId = unit.Id;
-            unit.CurrentActions -= 1;
+            unit.Actions -= 1;
             EventBus.Publish(new UnitMovedEvent(unit.Id, oldCoords, (xCoord, yCoord)));
 
             TurnStateMachine.EndAction();
@@ -396,7 +371,7 @@ namespace GameLogic
                     throw new ImpossibleStateException();
             }
 
-            if (attacker.CurrentActions <= 0 ||
+            if (attacker.Actions <= 0 ||
                 attacker.Team == target.Team)
                 throw new InvalidOperationException();
 
@@ -410,13 +385,54 @@ namespace GameLogic
 
             TurnStateMachine.BeginAction();
 
-            attacker.CurrentActions -= 1;
+            attacker.Actions -= 1;
             target.Strength = target.Strength > Unit.GetDamageByType(attacker.Type, target.Type)
                 ? target.Strength - Unit.GetDamageByType(attacker.Type, target.Type)
                 : 0;
 
             TurnStateMachine.EndAction();
         }
+
+        /// <summary>
+        ///
+        /// </summary>
+        /// <param name="team"></param>
+        /// <param name="type"></param>
+        /// <param name="xCoord"></param>
+        /// <param name="yCoord"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentOutOfRangeException">Invalid coordinates.</exception>
+        /// <exception cref="InvalidOperationException">Coordinate already occupied.</exception>
+        public Unit CreateUnit(UnitTeam team, UnitType type, int xCoord, int yCoord)
+        {
+            if (xCoord < 0 || xCoord >= Map.Length)
+                throw new ArgumentOutOfRangeException(
+                    $"xCoord ({xCoord}) must be between 0 and {Map.Length}");
+
+            if (yCoord < 0 || yCoord >= Map[0].Length)
+                throw new ArgumentOutOfRangeException(
+                    $"yCoord ({yCoord}) must be between 0 and {Map[0].Length}");
+
+            if (Map[xCoord][yCoord].UnitId != 0)
+                throw new InvalidOperationException(
+                    $"Cannot create unit type {type} @ {xCoord},{yCoord}," +
+                    $" tile already occupied by unit {Map[xCoord][yCoord].UnitId}.");
+
+            if (TryGetUnit(_unitIdCounter, out _))
+                throw new ImpossibleStateException(
+                    $"Cannot create unit {_unitIdCounter}," +
+                    " this unit already exists.");
+
+            var newUnit = new Unit(_unitIdCounter, team, type, EventBus);
+            _units.Add(newUnit);
+            Map[xCoord][yCoord].UnitId = _unitIdCounter;
+            ++_unitIdCounter;
+            return newUnit;
+        }
+
+        ////////////////////
+        // EVENT HANDLING //
+        ////////////////////
 
         /// <summary>
         ///

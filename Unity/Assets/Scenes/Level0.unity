@@ -119,6 +119,56 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!1 &40630740
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 40630742}
+  - component: {fileID: 40630741}
+  m_Layer: 0
+  m_Name: UnitRenderer
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &40630741
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 40630740}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d384f52ad3fd3774b87b0e2467e1861a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Assets.Scripts.UnitRenderer
+  simController: {fileID: 0}
+  prefabInfantryBlue: {fileID: 0}
+  prefabInfantryRed: {fileID: 0}
+  prefabTankBlue: {fileID: 0}
+  prefabTankRed: {fileID: 0}
+  prefabUnitLabel: {fileID: 0}
+--- !u!4 &40630742
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 40630740}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -0.21123, y: 0, z: -1.52649}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &42973055
 GameObject:
   m_ObjectHideFlags: 0
@@ -183,9 +233,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Assets.Scripts.MapRenderer
   simController: {fileID: 1287698714}
-  matHighlightMovement: {fileID: 2100000, guid: 67c1dece1e2ddb8419c4c5d22ae142f6, type: 2}
-  matHighlightTarget: {fileID: 2100000, guid: 67c1dece1e2ddb8419c4c5d22ae142f6, type: 2}
-  matHighlightSelection: {fileID: 2100000, guid: 67c1dece1e2ddb8419c4c5d22ae142f6, type: 2}
+  highlightSelectionColour: {r: 0.8490566, g: 0.57763016, b: 0.107333556, a: 0.11764706}
+  highlightMovementColour: {r: 0.08024918, g: 0.6382044, b: 0.83396226, a: 0.11764706}
+  highlightTargetColour: {r: 0.54509807, g: 0, b: 0, a: 0.11764706}
   tilePrefabs:
   - type: 0
     prefab: {fileID: 5955088478562067466, guid: 52208ac6237e8174b9fc1082fdab5deb, type: 3}
@@ -217,7 +267,6 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 1382462746}
   - {fileID: 705507995}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -982,11 +1031,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0cb8ab078f55098479017f3348af83b8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GameController
-  prefabInfantryBlue: {fileID: 3584067556834337794, guid: e6ac11f707c3ece439a975e204c5175f, type: 3}
-  prefabInfantryRed: {fileID: 8392252581616053097, guid: 2e1000c69e375954786d6c5a95a5422f, type: 3}
-  prefabTankBlue: {fileID: 4968707086981485087, guid: 06eb304c8166ef849b5d6abe401a0ad7, type: 3}
-  prefabTankRed: {fileID: 5981137824414544235, guid: a4db3c2d74a05ac43a0d676cc2c18957, type: 3}
-  prefabUnitLabel: {fileID: 5237211191009737206, guid: 5919a35ad27208b4cb4c64e5b69e413c, type: 3}
 --- !u!4 &1287698715
 Transform:
   m_ObjectHideFlags: 0
@@ -1001,99 +1045,6 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &1382462743
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1382462746}
-  - component: {fileID: 1382462745}
-  - component: {fileID: 1382462744}
-  m_Layer: 0
-  m_Name: Terrain
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 2147483647
-  m_IsActive: 1
---- !u!154 &1382462744
-TerrainCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1382462743}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_TerrainData: {fileID: 15600000, guid: e2724c6b5a3f2044fa1df12c97b7fd19, type: 2}
-  m_EnableTreeColliders: 1
---- !u!218 &1382462745
-Terrain:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1382462743}
-  m_Enabled: 1
-  serializedVersion: 6
-  m_TerrainData: {fileID: 0}
-  m_TreeDistance: 5000
-  m_TreeBillboardDistance: 50
-  m_TreeCrossFadeLength: 5
-  m_TreeMaximumFullLODCount: 50
-  m_DetailObjectDistance: 80
-  m_DetailObjectDensity: 1
-  m_HeightmapPixelError: 5
-  m_SplatMapDistance: 1000
-  m_HeightmapMinimumLODSimplification: 0
-  m_HeightmapMaximumLOD: 0
-  m_ShadowCastingMode: 2
-  m_DrawHeightmap: 1
-  m_DrawInstanced: 0
-  m_DrawTreesAndFoliage: 1
-  m_StaticShadowCaster: 0
-  m_IgnoreQualitySettings: 0
-  m_ReflectionProbeUsage: 1
-  m_MaterialTemplate: {fileID: 10652, guid: 0000000000000000f000000000000000, type: 0}
-  m_BakeLightProbesForTrees: 1
-  m_PreserveTreePrototypeLayers: 0
-  m_DeringLightProbesForTrees: 1
-  m_ReceiveGI: 1
-  m_ScaleInLightmap: 0.0256
-  m_LightmapParameters: {fileID: 15203, guid: 0000000000000000f000000000000000, type: 0}
-  m_GroupingID: 0
-  m_RenderingLayerMask: 1
-  m_AllowAutoConnect: 1
-  m_EnableHeightmapRayTracing: 1
-  m_EnableTreesAndDetailsRayTracing: 0
-  m_TreeMotionVectorModeOverride: 3
---- !u!4 &1382462746
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1382462743}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -350, y: 0, z: -350}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 103949736}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1401091502
 GameObject:
@@ -2031,6 +1982,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cf538da1056d1cf44aefb59bfb8e4251, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AiManager
+  simController: {fileID: 1287698714}
+  team: 0
 --- !u!4 &2034812741
 Transform:
   m_ObjectHideFlags: 0
@@ -2057,3 +2010,4 @@ SceneRoots:
   - {fileID: 42973056}
   - {fileID: 934041800}
   - {fileID: 103949736}
+  - {fileID: 40630742}
