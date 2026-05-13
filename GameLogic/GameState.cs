@@ -9,7 +9,7 @@ namespace GameLogic
     ///  <summary>
     ///  Represents the current state of the game.
     ///  </summary>
-    public class GameState
+    public class GameState : IDisposable
     {
         /// <summary>
         /// Width of the map.
@@ -46,15 +46,15 @@ namespace GameLogic
         /// </summary>
         private uint _unitIdCounter = 1;
 
-
         /// <summary>
         /// Constructor for GameState.
         /// </summary>
+        /// <param name="eventBus"></param>
         /// <param name="mapJsonString"></param>
-        public GameState(string mapJsonString)
+        public GameState(EventBus eventBus, string mapJsonString)
         {
+            EventBus = eventBus;
             (Map, MapX, MapY) = MapLoader.LoadFromJson(mapJsonString);
-            EventBus = new EventBus();
             TurnStateMachine = new TurnStateMachine(EventBus);
             EventBus.Subscribe<UnitAttackedEvent>(HandleUnitDamaged);
             EventBus.Subscribe<TurnStateChangeEvent>(HandleTurnStateChange);
@@ -64,6 +64,15 @@ namespace GameLogic
             for (var i = 0; i < 3; i++) CreateUnit(UnitTeam.Red, UnitType.Tank, i + 12, 15);
             for (var i = 0; i < 1; i++) CreateUnit(UnitTeam.Red, UnitType.Infantry, i + 16, 16);
             for (var i = 0; i < 1; i++) CreateUnit(UnitTeam.Red, UnitType.Infantry, i + 16, 22);
+        }
+
+        /// <summary>
+        ///     Detaches this game state's event handlers from the event bus.
+        /// </summary>
+        public void Dispose()
+        {
+            EventBus.Unsubscribe<UnitAttackedEvent>(HandleUnitDamaged);
+            EventBus.Unsubscribe<TurnStateChangeEvent>(HandleTurnStateChange);
         }
 
         ///////////////////

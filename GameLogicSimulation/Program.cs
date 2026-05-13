@@ -14,7 +14,7 @@ internal class Program
         string jsonString = reader.ReadToEnd();
         reader.Close();
 
-        GameState gameState = new(jsonString);
+        GameState gameState = new(new EventBus(), jsonString);
         Ai ai =  new(gameState);
 
         var coords = gameState.GetMoveableCoords(2, 2, UnitType.Infantry);

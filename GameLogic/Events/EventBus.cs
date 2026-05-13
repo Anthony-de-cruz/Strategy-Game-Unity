@@ -46,7 +46,7 @@ namespace GameLogic.Events
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="handler"></param>
-        public void Unsubscribe<T>(Action handler) where T : IGameEvent
+        public void Unsubscribe<T>(Action<T> handler) where T : IGameEvent
         {
             if (_handlers.TryGetValue(typeof(T), out HashSet<Delegate> handlers))
                 handlers.Remove(handler);

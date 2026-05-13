@@ -41,9 +41,17 @@ namespace Assets.Scripts
         private const UnitTeam ClientTeam = UnitTeam.Blue;
 
         /// <summary>
+        ///     Simulation event bus. Can be shared between <see cref="_simState"/> instances.
+        /// </summary>
+        private readonly EventBus _eventBus = new EventBus();
+
+        /// <summary>
         ///     Simulation state.
         /// </summary>
         private GameState _simState;
+
+        private string _map0JsonString;
+        private string _map1JsonString;
 
         ///////////////////
         // UNITY DRIVERS //
@@ -54,15 +62,15 @@ namespace Assets.Scripts
         /// </summary>
         private void Awake()
         {
-            string path = Path.Combine(Application.streamingAssetsPath, "Maps", "map.json");
-            string jsonString = File.ReadAllText(path);
+            _map0JsonString = File.ReadAllText(Path.Combine(Application.streamingAssetsPath, "Maps", "map0.json"));
+            _map1JsonString = File.ReadAllText(Path.Combine(Application.streamingAssetsPath, "Maps", "map1.json"));
 
-            _simState = new GameState(jsonString);
-            _simState.TurnStateMachine.Init();
-            _simState.EventBus.Subscribe<TurnStateChangeEvent>(HandleTurnStateChanged);
-            _simState.EventBus.Subscribe<UnitAttackedEvent>(HandleUnitAttacked);
-            _simState.EventBus.Subscribe<UnitMovedEvent>(HandleUnitMoved);
-            _simState.EventBus.Subscribe<UnitSpentActionEvent>(HandleUnitSpentAction);
+            _eventBus.Subscribe<TurnStateChangeEvent>(HandleTurnStateChanged);
+            _eventBus.Subscribe<UnitAttackedEvent>(HandleUnitAttacked);
+            _eventBus.Subscribe<UnitMovedEvent>(HandleUnitMoved);
+            _eventBus.Subscribe<UnitSpentActionEvent>(HandleUnitSpentAction);
+
+            LoadGameState(_map0JsonString);
         }
 
         ///////////////////
@@ -113,6 +121,18 @@ namespace Assets.Scripts
         ///     Raised on highlight reset.
         /// </summary>
         public event Action OnResetHighlight;
+
+        /// <summary>
+        ///
+        /// </summary>
+        /// <param name="jsonString"></param>
+        private void LoadGameState(string jsonString)
+        {
+            _simState?.Dispose();
+
+            _simState = new GameState(_eventBus, jsonString);
+            _simState.TurnStateMachine.Init();
+        }
 
         /// <summary>
         ///
@@ -230,9 +250,16 @@ namespace Assets.Scripts
             if (!TryGetUnitById(SelectedId, out UnitView unit) ||
                 !TryGetUnitById(_simState.Map[xCoord][yCoord].UnitId, out UnitView target))
                 throw new ImpossibleStateException();
+
+            bool isAttackable = false;
             foreach (UnitView v in GetAttackableUnits(unit))
-                if (v.Id == target.Id) break;
-                else return false;
+                if (v.Id == target.Id)
+                {
+                    isAttackable = true;
+                    break;
+                }
+
+            if (!isAttackable) return false;
 
             try
             {
@@ -414,8 +441,9 @@ namespace Assets.Scripts
             switch (simEvent.NewState)
             {
                 case TurnState.BlueVictory:
-
                 case TurnState.RedVictory:
+                    SelectedId = 0;
+                    OnResetHighlight?.Invoke();
                     break;
                 default:
                     return;

@@ -13,6 +13,11 @@ namespace Assets.Scripts
         private static readonly int IsMoving = Animator.StringToHash("IsMoving");
 
         /// <summary>
+        ///     Cached animator bool id.
+        /// </summary>
+        private static readonly int IsShooting = Animator.StringToHash("IsShooting");
+
+        /// <summary>
         ///
         /// </summary>
         /// <param name="target"></param>
@@ -35,6 +40,22 @@ namespace Assets.Scripts
 
             transform.position = target;
             animator.SetBool(IsMoving, false);
+        }
+
+        public IEnumerator Attack(Vector3 target)
+        {
+            animator.SetBool(IsShooting, true);
+
+            const float duration = 0.50f;
+            var elapsed = 0f;
+
+            while (elapsed < duration)
+            {
+                elapsed += Time.deltaTime;
+                yield return null;
+            }
+
+            animator.SetBool(IsShooting, false);
         }
     }
 }

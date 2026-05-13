@@ -127,13 +127,34 @@ namespace Assets.Scripts
         /// </summary>
         private void HandleUnitAttacked(UnitAttackedEvent e)
         {
-            if (e.NewStrength > 0) return;
+            // Remove destroyed unit.
+            if (e.NewStrength == 0)
+            {
+                foreach ((uint id, GameObject obj) unit in _spawnedUnits)
+                {
+                    if (unit.id != e.TargetId) continue;
+                    Destroy(unit.obj);
+                    _spawnedUnits.Remove(unit);
+                    break;
+                }
+            }
+
+            // Start unit attack animations.
             foreach ((uint id, GameObject obj) unit in _spawnedUnits)
             {
-                if (unit.id != e.TargetId) continue;
-                Destroy(unit.obj);
-                _spawnedUnits.Remove(unit);
-                return;
+                if (unit.id != e.AttackerId) continue;
+                if (!simController.TryGetUnitById(unit.id, out UnitView view)) throw new ImpossibleStateException();
+                switch (view.Type)
+                {
+                    case UnitType.Infantry:
+                        var unitInf = unit.obj.GetComponent<UnitInfantry>();
+                        StartCoroutine(unitInf.Attack(new Vector3()));
+                        break;
+                    case UnitType.Tank:
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
             }
         }
     }
