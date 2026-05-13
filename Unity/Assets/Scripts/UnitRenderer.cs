@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using GameLogic;
 using GameLogic.Events;
+using GameLogic.MyApp.Exceptions;
 using UnityEngine;
 
 
@@ -29,7 +30,7 @@ namespace Assets.Scripts
             foreach (UnitView unit in simController.GetUnitsByTeam(UnitTeam.Red))
                 RenderUnit(unit);
 
-            simController.OnUnitDamaged += HandleUnitDamaged;
+            simController.OnUnitDamaged += HandleUnitAttacked;
             simController.OnUnitMoved += HandleUnitMoved;
         }
 
@@ -38,7 +39,7 @@ namespace Assets.Scripts
         /// </summary>
         private void OnDisable()
         {
-            simController.OnUnitDamaged -= HandleUnitDamaged;
+            simController.OnUnitDamaged -= HandleUnitAttacked;
             simController.OnUnitMoved -= HandleUnitMoved;
 
             foreach ((uint Id, GameObject Obj) unit in _spawnedUnits)
@@ -70,7 +71,7 @@ namespace Assets.Scripts
 
             GameObject modelObj = Instantiate(
                 prefab,
-                new Vector3(unit.X * SimController.WorldScale + 4, 0.5f, unit.Y * SimController.WorldScale + 4),
+                new Vector3(unit.X * SimController.WorldScale + 5, 0.05f, unit.Y * SimController.WorldScale + 4),
                 rotation,
                 transform);
             _spawnedUnits.Add((unit.Id, modelObj));
@@ -93,9 +94,30 @@ namespace Assets.Scripts
             foreach ((uint id, GameObject obj) unit in _spawnedUnits)
             {
                 if (unit.id != e.UnitId) continue;
-                unit.obj.transform.position = new Vector3(
-                    e.NewCoords.Item1 * SimController.WorldScale + 4, 0.5f,
-                    e.NewCoords.Item2 * SimController.WorldScale + 4);
+                if (!simController.TryGetUnitById(unit.id, out UnitView view)) throw new ImpossibleStateException();
+
+                switch (view.Type)
+                {
+                    case UnitType.Infantry:
+                        var unitInf = unit.obj.GetComponent<UnitInfantry>();
+                        StartCoroutine(
+                            unitInf.MoveTo(new Vector3(
+                                e.NewCoords.Item1 * SimController.WorldScale + 5f, 0.05f,
+                                e.NewCoords.Item2 * SimController.WorldScale + 5f))
+                        );
+                        break;
+                    case UnitType.Tank:
+                        var unitTank = unit.obj.GetComponent<UnitTank>();
+                        StartCoroutine(
+                            unitTank.MoveTo(new Vector3(
+                                e.NewCoords.Item1 * SimController.WorldScale + 5f, 0.05f,
+                                e.NewCoords.Item2 * SimController.WorldScale + 5f))
+                        );
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+
                 return;
             }
         }
@@ -103,12 +125,12 @@ namespace Assets.Scripts
         /// <summary>
         ///
         /// </summary>
-        private void HandleUnitDamaged(UnitDamagedEvent e)
+        private void HandleUnitAttacked(UnitAttackedEvent e)
         {
             if (e.NewStrength > 0) return;
             foreach ((uint id, GameObject obj) unit in _spawnedUnits)
             {
-                if (unit.id != e.UnitId) continue;
+                if (unit.id != e.TargetId) continue;
                 Destroy(unit.obj);
                 _spawnedUnits.Remove(unit);
                 return;

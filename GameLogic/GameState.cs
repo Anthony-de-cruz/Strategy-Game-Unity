@@ -56,7 +56,7 @@ namespace GameLogic
             (Map, MapX, MapY) = MapLoader.LoadFromJson(mapJsonString);
             EventBus = new EventBus();
             TurnStateMachine = new TurnStateMachine(EventBus);
-            EventBus.Subscribe<UnitDamagedEvent>(HandleUnitDamaged);
+            EventBus.Subscribe<UnitAttackedEvent>(HandleUnitDamaged);
             EventBus.Subscribe<TurnStateChangeEvent>(HandleTurnStateChange);
 
             for (var i = 0; i < 3; i++) CreateUnit(UnitTeam.Blue, UnitType.Infantry, i + 12, 10);
@@ -385,9 +385,11 @@ namespace GameLogic
                 throw new InvalidOperationException();
 
             attacker.Actions -= 1;
+            uint oldStrength = target.Strength;
             target.Strength = target.Strength > Unit.GetDamageByType(attacker.Type, target.Type)
                 ? target.Strength - Unit.GetDamageByType(attacker.Type, target.Type)
                 : 0;
+            EventBus.Publish(new UnitAttackedEvent(attacker.Id, target.Id, oldStrength, target.Strength));
         }
 
         /// <summary>
@@ -433,11 +435,11 @@ namespace GameLogic
         ///
         /// </summary>
         /// <param name="e"></param>
-        private void HandleUnitDamaged(UnitDamagedEvent e)
+        private void HandleUnitDamaged(UnitAttackedEvent e)
         {
             if (e.NewStrength != 0) return;
-            if (!TryGetUnit(e.UnitId, out Unit unit)) throw new ImpossibleStateException();
-            TryGetUnitCoords(e.UnitId, out (uint X, uint Y) coords);
+            if (!TryGetUnit(e.TargetId, out Unit unit)) throw new ImpossibleStateException();
+            TryGetUnitCoords(e.TargetId, out (uint X, uint Y) coords);
             Map[coords.X][coords.Y].UnitId = 0;
             _units.Remove(unit);
 

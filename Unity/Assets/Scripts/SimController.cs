@@ -60,7 +60,7 @@ namespace Assets.Scripts
             _simState = new GameState(jsonString);
             _simState.TurnStateMachine.Init();
             _simState.EventBus.Subscribe<TurnStateChangeEvent>(HandleTurnStateChanged);
-            _simState.EventBus.Subscribe<UnitDamagedEvent>(HandleUnitDamaged);
+            _simState.EventBus.Subscribe<UnitAttackedEvent>(HandleUnitAttacked);
             _simState.EventBus.Subscribe<UnitMovedEvent>(HandleUnitMoved);
             _simState.EventBus.Subscribe<UnitSpentActionEvent>(HandleUnitSpentAction);
         }
@@ -82,7 +82,7 @@ namespace Assets.Scripts
         /// <summary>
         ///     Raised when a unit is damaged.
         /// </summary>
-        public event Action<UnitDamagedEvent> OnUnitDamaged;
+        public event Action<UnitAttackedEvent> OnUnitDamaged;
 
         /// <summary>
         ///     Raised when a unit is moved.
@@ -115,7 +115,7 @@ namespace Assets.Scripts
         public event Action OnResetHighlight;
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="xCoord"></param>
         /// <param name="yCoord"></param>
@@ -160,7 +160,7 @@ namespace Assets.Scripts
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="xCoord"></param>
         /// <param name="yCoord"></param>
@@ -208,11 +208,10 @@ namespace Assets.Scripts
             IEnumerator MoveRoutine()
             {
                 _simState.TurnStateMachine.BeginAction();
-                yield return new WaitForSeconds(0.25f);
                 _simState.ActionMoveUnit(ViewToPtr(unit), xCoord, yCoord);
                 _selectedXCoord = xCoord;
                 _selectedYCoord = yCoord;
-                yield return new WaitForSeconds(1f);
+                yield return new WaitForSeconds(0.5f);
                 _simState.TurnStateMachine.EndAction();
                 SetTileHighlights();
             }
@@ -332,6 +331,7 @@ namespace Assets.Scripts
         /// <param name="unitId"></param>
         /// <param name="unit"></param>
         /// <returns></returns>
+        // ReSharper disable once MemberCanBePrivate.Global
         public bool TryGetUnitById(uint unitId, out UnitView unit)
         {
             if (!_simState.TryGetUnit(unitId, out Unit u))
@@ -370,6 +370,7 @@ namespace Assets.Scripts
         /// </summary>
         /// <param name="unit"></param>
         /// <returns></returns>
+        // ReSharper disable once MemberCanBePrivate.Global
         public (uint, uint)[] GetMoveableCoords(UnitView unit) =>
             _simState.GetMoveableCoords(unit.X, unit.Y, unit.Type);
 
@@ -422,14 +423,14 @@ namespace Assets.Scripts
         }
 
         /// <summary>
-        ///     Forwards raised sim <see cref="UnitDamagedEvent" />.
+        ///     Forwards raised sim <see cref="UnitAttackedEvent" />.
         /// </summary>
         /// <param name="simEvent"></param>
-        private void HandleUnitDamaged(UnitDamagedEvent simEvent)
+        private void HandleUnitAttacked(UnitAttackedEvent simEvent)
         {
             Debug.Log(
-                $"[UnitDamaged] Unit {simEvent.UnitId} lost " +
-                $"{simEvent.OldStrength - simEvent.NewStrength} strength " +
+                $"[UnitAttacked] Unit {simEvent.TargetId} was attacked by Unit {simEvent.AttackerId} " +
+                $"and lost {simEvent.OldStrength - simEvent.NewStrength} strength " +
                 $"({simEvent.OldStrength} -> {simEvent.NewStrength})"
             );
             OnUnitDamaged?.Invoke(simEvent);

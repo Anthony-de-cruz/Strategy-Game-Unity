@@ -2,6 +2,7 @@ using GameLogic;
 using GameLogic.Events;
 using UnityEngine;
 using TMPro;
+using UnityEngine.UI;
 
 namespace Assets.Scripts
 {
@@ -14,6 +15,7 @@ namespace Assets.Scripts
         public TMP_Text type;
         public TMP_Text actions;
         public TMP_Text strength;
+        public Image background;
 
         private SimController _simController;
         private uint _id;
@@ -75,11 +77,14 @@ namespace Assets.Scripts
             type.text = initType.ToString().ToUpper();
             strength.text = $"STR: {initStrength}";
             actions.text = "ACTIONS: 2/2";
+            background.color = initTeam == UnitTeam.Red
+                ? new Color(0.8f, 0.1f, 0.1f, 0.50f)
+                : new Color(0.1f, 0.25f, 0.9f, 0.50f);
         }
 
-        private void HandleUnitDamaged(UnitDamagedEvent e)
+        private void HandleUnitDamaged(UnitAttackedEvent e)
         {
-            if (e.UnitId != _id) return;
+            if (e.TargetId != _id) return;
             if (e.NewStrength == 0) Destroy(this);
 
             strength.text = $"STR: {e.NewStrength}";

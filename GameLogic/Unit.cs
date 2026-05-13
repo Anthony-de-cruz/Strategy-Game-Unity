@@ -61,18 +61,7 @@ namespace GameLogic
         /// <summary>
         /// 
         /// </summary>
-        public uint Strength
-        {
-            get => _strength;
-            set
-            {
-                if (value == _strength)
-                    return;
-                _eventBus.Publish(new UnitDamagedEvent(Id, _strength, value));
-                _strength = value;
-            }
-        }
-        private uint _strength;
+        public uint Strength { get; set; }
 
         /// <summary>
         /// 
@@ -93,7 +82,7 @@ namespace GameLogic
             Type = type;
             _eventBus = eventBus;
 
-            _strength = type switch
+            Strength = type switch
             {
                 UnitType.Infantry => 5,
                 UnitType.Tank => 10,

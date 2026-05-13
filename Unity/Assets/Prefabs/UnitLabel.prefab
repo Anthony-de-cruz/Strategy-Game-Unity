@@ -396,6 +396,7 @@ MonoBehaviour:
   type: {fileID: 7044709515350492934}
   actions: {fileID: 7157590703342292575}
   strength: {fileID: 3076504023589290430}
+  background: {fileID: 2023085106657156201}
 --- !u!1 &7434209175199531018
 GameObject:
   m_ObjectHideFlags: 0

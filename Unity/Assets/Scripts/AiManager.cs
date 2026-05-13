@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using GameLogic;
 using GameLogic.Events;
 using UnityEngine;
@@ -31,27 +30,6 @@ namespace Assets.Scripts
             simController.OnTurnStateChanged -= HandleTurnStateChange;
         }
 
-        // /// <summary>
-        // /// </summary>
-        // private void MockRedTurnStart()
-        // {
-        //     StartCoroutine(MockRedTurnEndCoroutine());
-        // }
-        //
-        // /// <summary>
-        // /// </summary>
-        // /// <returns></returns>
-        // private IEnumerator MockRedTurnEndCoroutine()
-        // {
-        //     yield return new WaitForSeconds(1f);
-        //
-        //     EnemySelectUnitAt(13, 15 - _simState.TurnStateMachine.TurnCounter);
-        //     TryMoveSelectedUnitTo(13, 14 - _simState.TurnStateMachine.TurnCounter);
-        //
-        //     yield return new WaitForSeconds(1f);
-        //     _simState.TurnStateMachine.EndTurn();
-        // }
-
         /// <summary>
         ///
         /// </summary>
@@ -76,18 +54,6 @@ namespace Assets.Scripts
             }
             simController.EndTurn();
         }
-
-        // private IEnumerator PerformAction(GameAction action)
-        // {
-        //     yield return new WaitForSeconds(1f);
-        //
-        //     EnemySelectUnitAt(13, 15 - _simState.TurnStateMachine.TurnCounter);
-        //     TryMoveSelectedUnitTo(13, 14 - _simState.TurnStateMachine.TurnCounter);
-        //
-        //     yield return new WaitForSeconds(1f);
-        //     _simState.TurnStateMachine.EndTurn();
-        //
-        // }
 
         /// <summary>
         ///

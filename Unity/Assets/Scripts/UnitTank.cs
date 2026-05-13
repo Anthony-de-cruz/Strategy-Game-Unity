@@ -1,11 +1,11 @@
-using System.Collections;
+﻿using System.Collections;
 using UnityEngine;
 
 namespace Assets.Scripts
 {
-    public class UnitInfantry : MonoBehaviour
+    public class UnitTank : MonoBehaviour
     {
-        public Animator animator;
+        //public Animator animator;
 
         /// <summary>
         ///     Cached animator bool id.
@@ -19,10 +19,10 @@ namespace Assets.Scripts
         /// <returns></returns>
         public IEnumerator MoveTo(Vector3 target)
         {
-            animator.SetBool(IsMoving, true);
+            //animator.SetBool(IsMoving, true);
 
             Vector3 start = transform.position;
-            const float duration = 0.50f;
+            const float duration = 0.35f;
             var elapsed = 0f;
 
             while (elapsed < duration)
@@ -34,7 +34,7 @@ namespace Assets.Scripts
             }
 
             transform.position = target;
-            animator.SetBool(IsMoving, false);
+            //animator.SetBool(IsMoving, false);
         }
     }
 }

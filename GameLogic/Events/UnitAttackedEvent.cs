@@ -3,12 +3,17 @@
     /// <summary>
     /// Event to represent a unit being damaged.
     /// </summary>
-    public class UnitDamagedEvent : IGameEvent
+    public class UnitAttackedEvent : IGameEvent
     {
+        /// <summary>
+        /// ID of the attacking unit.
+        /// </summary>
+        public uint AttackerId { get; }
+
         /// <summary>
         /// ID of the affected unit.
         /// </summary>
-        public uint UnitId { get; }
+        public uint TargetId { get; }
 
         /// <summary>
         /// Previous strength of the affected unit.
@@ -21,13 +26,16 @@
         public uint NewStrength { get; }
 
         /// <summary>
-        /// Constructor for <see cref="UnitDamagedEvent"/>.
+        /// Constructor for <see cref="UnitAttackedEvent"/>.
         /// </summary>
-        /// <param name="oldState"></param>
-        /// <param name="newState"></param>
-        public UnitDamagedEvent(uint unitId, uint oldStrength, uint newStrength)
+        /// <param name="attackerId"></param>
+        /// <param name="targetId"></param>
+        /// <param name="oldStrength"></param>
+        /// <param name="newStrength"></param>
+        public UnitAttackedEvent(uint attackerId, uint targetId, uint oldStrength, uint newStrength)
         {
-            UnitId = unitId;
+            AttackerId = attackerId;
+            TargetId = targetId;
             OldStrength = oldStrength;
             NewStrength = newStrength;
         }
