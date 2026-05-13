@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using GameLogic;
-using GameLogic.MyApp.Exceptions;
 using UnityEngine;
 
 namespace Assets.Scripts
@@ -20,9 +19,9 @@ namespace Assets.Scripts
             public GameObject prefab;
         }
 
-        public Color highlightSelectionColour = new Color(0.9f, 0.8f, 0f, 0.45f);
-        public Color highlightMovementColour  = new Color(0.1f, 0.9f, 1f, 0.45f);
-        public Color highlightTargetColour = new Color(1f, 0.1f, 0f, 0.45f);
+        public Color highlightSelectionColour = new(0.9f, 0.8f, 0f, 0.45f);
+        public Color highlightMovementColour = new(0.1f, 0.9f, 1f, 0.45f);
+        public Color highlightTargetColour = new(1f, 0.1f, 0f, 0.45f);
         public TilePrefab[] tilePrefabs;
         public Transform tileParent;
 
@@ -103,9 +102,9 @@ namespace Assets.Scripts
 
                     // Instantiate prefab.
                     Vector3 position = new(
-                        x * SimController.WORLD_SCALE + SimController.WORLD_SCALE * 0.5f,
+                        x * SimController.WorldScale + SimController.WorldScale * 0.5f,
                         0f,
-                        y * SimController.WORLD_SCALE + SimController.WORLD_SCALE * 0.5f
+                        y * SimController.WorldScale + SimController.WorldScale * 0.5f
                     );
                     GameObject tileObject = Instantiate(
                         prefab,

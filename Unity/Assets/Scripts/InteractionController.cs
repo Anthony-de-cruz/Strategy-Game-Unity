@@ -44,8 +44,8 @@ namespace Assets.Scripts
                     Mouse.current.position.ReadValue()), out RaycastHit hit))
                 return;
 
-            int xCoord = (int)hit.point.x / SimController.WORLD_SCALE;
-            int yCoord = (int)hit.point.z / SimController.WORLD_SCALE;
+            int xCoord = (int)hit.point.x / SimController.WorldScale;
+            int yCoord = (int)hit.point.z / SimController.WorldScale;
             Debug.Log($"Clicked world position: {hit.point} -> {xCoord},{yCoord}");
             simController.TrySelectUnitAt(xCoord, yCoord);
         }
@@ -62,8 +62,8 @@ namespace Assets.Scripts
                     Mouse.current.position.ReadValue()), out RaycastHit hit))
                 return;
 
-            int xCoord = (int)hit.point.x / SimController.WORLD_SCALE;
-            int yCoord = (int)hit.point.z / SimController.WORLD_SCALE;
+            int xCoord = (int)hit.point.x / SimController.WorldScale;
+            int yCoord = (int)hit.point.z / SimController.WorldScale;
             Debug.Log($"Clicked world position: {hit.point} -> {xCoord},{yCoord}");
             simController.TrySelectUnitAction(xCoord, yCoord);
         }

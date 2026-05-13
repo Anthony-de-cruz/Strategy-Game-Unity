@@ -403,10 +403,9 @@ namespace GameLogic
         /// <param name="type"></param>
         /// <param name="xCoord"></param>
         /// <param name="yCoord"></param>
-        /// <returns></returns>
         /// <exception cref="ArgumentOutOfRangeException">Invalid coordinates.</exception>
         /// <exception cref="InvalidOperationException">Coordinate already occupied.</exception>
-        public Unit CreateUnit(UnitTeam team, UnitType type, int xCoord, int yCoord)
+        private void CreateUnit(UnitTeam team, UnitType type, int xCoord, int yCoord)
         {
             if (xCoord < 0 || xCoord >= Map.Length)
                 throw new ArgumentOutOfRangeException(
@@ -430,7 +429,6 @@ namespace GameLogic
             _units.Add(newUnit);
             Map[xCoord][yCoord].UnitId = _unitIdCounter;
             ++_unitIdCounter;
-            return newUnit;
         }
 
         ////////////////////

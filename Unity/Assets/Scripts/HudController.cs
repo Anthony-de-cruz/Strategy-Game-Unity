@@ -38,15 +38,6 @@ namespace Assets.Scripts
         /// </summary>
         public SimController simController;
 
-
-        /// <summary>
-        ///     Called once per frame.
-        /// </summary>
-        private void Update()
-        {
-        }
-
-
         /// <summary>
         ///     Called on game object enabled.
         /// </summary>

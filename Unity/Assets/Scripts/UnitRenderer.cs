@@ -70,7 +70,7 @@ namespace Assets.Scripts
 
             GameObject modelObj = Instantiate(
                 prefab,
-                new Vector3(unit.X * SimController.WORLD_SCALE + 4, 0.5f, unit.Y * SimController.WORLD_SCALE + 4),
+                new Vector3(unit.X * SimController.WorldScale + 4, 0.5f, unit.Y * SimController.WorldScale + 4),
                 rotation,
                 transform);
             _spawnedUnits.Add((unit.Id, modelObj));
@@ -94,8 +94,8 @@ namespace Assets.Scripts
             {
                 if (unit.id != e.UnitId) continue;
                 unit.obj.transform.position = new Vector3(
-                    e.NewCoords.Item1 * SimController.WORLD_SCALE + 4, 0.5f,
-                    e.NewCoords.Item2 * SimController.WORLD_SCALE + 4);
+                    e.NewCoords.Item1 * SimController.WorldScale + 4, 0.5f,
+                    e.NewCoords.Item2 * SimController.WorldScale + 4);
                 return;
             }
         }

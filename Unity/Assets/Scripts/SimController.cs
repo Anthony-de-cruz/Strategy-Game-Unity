@@ -18,7 +18,7 @@ namespace Assets.Scripts
         /// <summary>
         ///     Represents the sim to game world scale factor.
         /// </summary>
-        public static readonly int WORLD_SCALE = 10;
+        public static readonly int WorldScale = 10;
 
         /// <summary>
         ///
@@ -38,7 +38,7 @@ namespace Assets.Scripts
         private int _selectedXCoord;
         private int _selectedYCoord;
 
-        private UnitTeam _clientTeam = UnitTeam.Blue;
+        private const UnitTeam ClientTeam = UnitTeam.Blue;
 
         /// <summary>
         ///     Simulation state.
@@ -63,13 +63,6 @@ namespace Assets.Scripts
             _simState.EventBus.Subscribe<UnitDamagedEvent>(HandleUnitDamaged);
             _simState.EventBus.Subscribe<UnitMovedEvent>(HandleUnitMoved);
             _simState.EventBus.Subscribe<UnitSpentActionEvent>(HandleUnitSpentAction);
-
-            // for (var i = 0; i < 3; i++) CreateUnit(UnitTeam.Blue, UnitType.Infantry, i + 12, 10);
-            // for (var i = 0; i < 2; i++) CreateUnit(UnitTeam.Blue, UnitType.Tank, i + 10, 9);
-            // for (var i = 0; i < 3; i++) CreateUnit(UnitTeam.Red, UnitType.Tank, i + 11, 15);
-
-            if (_simState.TryGetUnit(1, out Unit unit))
-                unit.Strength -= 2;
         }
 
         ///////////////////
@@ -141,7 +134,7 @@ namespace Assets.Scripts
             }
 
             if (!TryGetUnitById(id, out UnitView unit)) throw new ImpossibleStateException();
-            if (unit.Team != _clientTeam) return false;
+            if (unit.Team != ClientTeam) return false;
 
             SelectedId = id;
             _selectedXCoord = xCoord;
@@ -185,7 +178,7 @@ namespace Assets.Scripts
             }
             catch (Exception e) when (e is InvalidOperationException or ArgumentOutOfRangeException)
             {
-                Debug.LogError($"Failed to move unit {unit.Id}: {e.Message}");
+                Debug.LogError($"Failed to move unit {unit.Id}: {e}");
                 return false;
             }
 
@@ -225,7 +218,9 @@ namespace Assets.Scripts
             if (!TryGetUnitById(SelectedId, out UnitView unit) ||
                 !TryGetUnitById(_simState.Map[xCoord][yCoord].UnitId, out UnitView target))
                 throw new ImpossibleStateException();
-            if (Array.IndexOf(GetAttackableUnits(unit), target) == -1) return false;
+            foreach (UnitView v in GetAttackableUnits(unit))
+                if (v.Id == target.Id) break;
+                else return false;
 
             try
             {
@@ -233,7 +228,7 @@ namespace Assets.Scripts
             }
             catch (Exception e) when (e is InvalidOperationException or ArgumentOutOfRangeException)
             {
-                Debug.LogError($"Failed to attack unit {target.Id} with unit {unit.Id}: {e.Message}");
+                Debug.LogError($"Failed to attack unit {target.Id} with unit {unit.Id}: {e}");
                 return false;
             }
 

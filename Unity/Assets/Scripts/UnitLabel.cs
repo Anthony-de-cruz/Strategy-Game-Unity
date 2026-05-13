@@ -2,7 +2,6 @@ using GameLogic;
 using GameLogic.Events;
 using UnityEngine;
 using TMPro;
-using UnityEngine.UIElements;
 
 namespace Assets.Scripts
 {

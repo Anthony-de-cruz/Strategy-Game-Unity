@@ -1,5 +1,4 @@
-﻿using System;
-using GameLogic.MyApp.Exceptions;
+﻿using GameLogic.MyApp.Exceptions;
 
 namespace GameLogic
 {

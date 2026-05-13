@@ -1,5 +1,4 @@
 ﻿using GameLogic.Events;
-using System.Net.NetworkInformation;
 
 namespace GameLogic
 {
@@ -64,7 +63,7 @@ namespace GameLogic
         /// <summary>
         /// 
         /// </summary>
-        public int TurnCounter { get; private set; } = 0;
+        public int TurnCounter { get; private set; }
 
         /// <summary>
         /// 
