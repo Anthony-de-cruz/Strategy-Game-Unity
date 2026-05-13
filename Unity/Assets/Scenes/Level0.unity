@@ -1983,7 +1983,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AiManager
   simController: {fileID: 1287698714}
-  team: 0
+  team: 1
 --- !u!4 &2034812741
 Transform:
   m_ObjectHideFlags: 0
@@ -2004,8 +2004,8 @@ SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
   - {fileID: 1287698715}
-  - {fileID: 675823593}
   - {fileID: 2034812741}
+  - {fileID: 675823593}
   - {fileID: 985344473}
   - {fileID: 42973056}
   - {fileID: 934041800}

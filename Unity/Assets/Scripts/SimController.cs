@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.IO;
 using GameLogic;
 using GameLogic.Events;
@@ -34,9 +35,8 @@ namespace Assets.Scripts
         }
 
         private uint _selectedId;
-
-        private int _selectedXCoord;
-        private int _selectedYCoord;
+        private uint _selectedXCoord;
+        private uint _selectedYCoord;
 
         private const UnitTeam ClientTeam = UnitTeam.Blue;
 
@@ -119,10 +119,10 @@ namespace Assets.Scripts
         /// </summary>
         /// <param name="xCoord"></param>
         /// <param name="yCoord"></param>
-        public bool TrySelectUnitAt(int xCoord, int yCoord)
+        public bool TrySelectUnitAt(uint xCoord, uint yCoord)
         {
             if (TurnState != TurnState.BlueTurn) return false;
-            if (xCoord < 0 || xCoord >= _simState.MapX || yCoord < 0 || yCoord >= _simState.MapY) return false;
+            if (xCoord >= _simState.MapX || yCoord >= _simState.MapY) return false;
             uint id = _simState.Map[xCoord][yCoord].UnitId;
 
             // Deselect.
@@ -151,7 +151,7 @@ namespace Assets.Scripts
         /// <param name="xCoord"></param>
         /// <param name="yCoord"></param>
         /// <returns></returns>
-        public bool TrySelectUnitAction(int xCoord, int yCoord)
+        public bool TrySelectUnitAction(uint xCoord, uint yCoord)
         {
             if (SelectedId == 0) return false;
             return _simState.Map[xCoord][yCoord].UnitId != 0
@@ -164,13 +164,13 @@ namespace Assets.Scripts
         /// </summary>
         /// <param name="xCoord"></param>
         /// <param name="yCoord"></param>
-        private bool TryMoveSelectedUnit(int xCoord, int yCoord)
+        private bool TryMoveSelectedUnit(uint xCoord, uint yCoord)
         {
             if (SelectedId == 0) return false;
             if (_simState.Map[xCoord][yCoord].UnitId != 0) return false;
             if (!TryGetUnitById(SelectedId, out UnitView unit)) throw new ImpossibleStateException();
             // Dijkstra is slow, in future, an exact path should be passed in which can be checked.
-            if (Array.IndexOf(GetMoveableCoords(unit), ((uint)xCoord, (uint)yCoord)) == -1) return false;
+            if (Array.IndexOf(GetMoveableCoords(unit), (xCoord, yCoord)) == -1) return false;
 
             try
             {
@@ -200,9 +200,19 @@ namespace Assets.Scripts
         /// <param name="yCoord"></param>
         /// <exception cref="InvalidOperationException"></exception>
         /// <exception cref="ArgumentOutOfRangeException"></exception>
-        public void MoveUnit(UnitView unit, int xCoord, int yCoord)
+        public void MoveUnit(UnitView unit, uint xCoord, uint yCoord)
         {
-            _simState.ActionMoveUnit(ViewToPtr(unit), (uint)xCoord, (uint)yCoord);
+            StartCoroutine(MoveRoutine());
+            return;
+
+            IEnumerator MoveRoutine()
+            {
+                _simState.TurnStateMachine.BeginAction();
+                yield return new WaitForSeconds(0.25f);
+                _simState.ActionMoveUnit(ViewToPtr(unit), xCoord, yCoord);
+                yield return new WaitForSeconds(1f);
+                _simState.TurnStateMachine.EndAction();
+            }
         }
 
         /// <summary>
@@ -211,7 +221,7 @@ namespace Assets.Scripts
         /// <param name="xCoord"></param>
         /// <param name="yCoord"></param>
         /// <returns></returns>
-        private bool TryAttackWithSelectedUnit(int xCoord, int yCoord)
+        private bool TryAttackWithSelectedUnit(uint xCoord, uint yCoord)
         {
             if (SelectedId == 0) return false;
             if (_simState.Map[xCoord][yCoord].UnitId == 0) return false;
@@ -245,9 +255,18 @@ namespace Assets.Scripts
         /// <exception cref="InvalidOperationException"></exception>
         public void AttackWithUnit(UnitView unit, UnitView target)
         {
-            _simState.ActionAttackUnit(ViewToPtr(unit), ViewToPtr(target));
-        }
+            StartCoroutine(AttackRoutine());
+            return;
 
+            IEnumerator AttackRoutine()
+            {
+                _simState.TurnStateMachine.BeginAction();
+                yield return new WaitForSeconds(0.25f);
+                _simState.ActionAttackUnit(ViewToPtr(unit), ViewToPtr(target));
+                yield return new WaitForSeconds(1f);
+                _simState.TurnStateMachine.EndAction();
+            }
+        }
 
         /// <summary>
         ///     Highlight required tiles based on unit selection.
@@ -277,57 +296,6 @@ namespace Assets.Scripts
             SelectedId = 0;
             _simState.TurnStateMachine.EndTurn();
         }
-
-        public void TestVictory()
-        {
-            _simState.TurnStateMachine.BlueVictory();
-        }
-
-
-        // /// <summary>
-        // ///
-        // /// </summary>
-        // /// <param name="xCoord"></param>
-        // /// <param name="yCoord"></param>
-        // public bool EnemySelectUnitAt(int xCoord, int yCoord)
-        // {
-        //     uint id = _simState.Map[xCoord][yCoord].UnitId;
-        //     if (id == 0)
-        //     {
-        //         SelectedId = 0;
-        //         return false;
-        //     }
-        //
-        //     if (!_simState.TryGetUnit(id, out Unit unit)) throw new ImpossibleStateException();
-        //
-        //     _selectedId = id;
-        //     _selectedXCoord = xCoord;
-        //     _selectedYCoord = yCoord;
-        //     Debug.Log($"SelectUnitAt: {SelectedId}");
-        //     return true;
-        // }
-
-        // /// <summary>
-        // /// </summary>
-        // private void MockRedTurnStart()
-        // {
-        //     StartCoroutine(MockRedTurnEndCoroutine());
-        // }
-        //
-        // /// <summary>
-        // /// </summary>
-        // /// <returns></returns>
-        // private IEnumerator MockRedTurnEndCoroutine()
-        // {
-        //     yield return new WaitForSeconds(1f);
-        //
-        //     EnemySelectUnitAt(13, 15 - _simState.TurnStateMachine.TurnCounter);
-        //     TryMoveSelectedUnitTo(13, 14 - _simState.TurnStateMachine.TurnCounter);
-        //
-        //     yield return new WaitForSeconds(1f);
-        //     _simState.TurnStateMachine.EndTurn();
-        // }
-
 
         ////////////////////
         // STATE QUERIES //
@@ -437,9 +405,15 @@ namespace Assets.Scripts
             Debug.Log($"[TurnStateChanged] Turn {simEvent.TurnCounter + 1} {simEvent.OldState} -> {simEvent.NewState}");
             OnTurnStateChanged?.Invoke(simEvent);
 
-            // Mock red turn.
-            // if (simEvent.NewState == TurnState.RedTurn)
-            //     MockRedTurnStart();
+            switch (simEvent.NewState)
+            {
+                case TurnState.BlueVictory:
+
+                case TurnState.RedVictory:
+                    break;
+                default:
+                    return;
+            }
         }
 
         /// <summary>
@@ -454,6 +428,8 @@ namespace Assets.Scripts
                 $"({simEvent.OldStrength} -> {simEvent.NewStrength})"
             );
             OnUnitDamaged?.Invoke(simEvent);
+
+            if (simEvent.NewStrength == 0) SetTileHighlights();
         }
 
         /// <summary>

@@ -99,7 +99,7 @@ namespace GameLogic
                 UnitType.Tank => 10,
                 _ => throw new NotImplementedException($"Unhandled unit type: {type}."),
             };
-            _actions = 10;
+            _actions = 2;
         }
 
         /// <summary>

@@ -54,8 +54,9 @@ namespace GameLogic
             {
                 if (_state == value)
                     return;
-                _eventBus.Publish(new TurnStateChangeEvent(_state, value, TurnCounter));
+                TurnState oldState = _state;
                 _state = value;
+                _eventBus.Publish(new TurnStateChangeEvent(oldState, value, TurnCounter));
             }
         }
         private TurnState _state = TurnState.Init;

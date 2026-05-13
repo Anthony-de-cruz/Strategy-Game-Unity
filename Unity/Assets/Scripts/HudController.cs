@@ -28,11 +28,6 @@ namespace Assets.Scripts
         /// 
         /// </summary>
         public TMP_Text victorySplashText;
-        
-        /// <summary>
-        /// 
-        /// </summary>
-        public Button triggerVictoryButton;
 
         /// <summary>
         /// </summary>
@@ -46,7 +41,6 @@ namespace Assets.Scripts
             simController.OnTurnStateChanged += HandleSimTurnStateChanged;
             simController.OnSelectedUnitChanged += HandleSelectedUnitChanged;
             endTurnButton.onClick.AddListener(HandleEndTurnButtonClick);
-            triggerVictoryButton.onClick.AddListener(HandleTriggerVictoryButtonClick);
 
             // Initial state.
             selectedUnit.text = "";
@@ -62,7 +56,7 @@ namespace Assets.Scripts
                 TurnState.BlueTurn => true,
                 _ => false
             };
-            
+
             victorySplashText.gameObject.SetActive(false);
         }
 
@@ -85,14 +79,6 @@ namespace Assets.Scripts
         /// <summary>
         /// 
         /// </summary>
-        private void HandleTriggerVictoryButtonClick()
-        {
-            simController.TestVictory();
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
         /// <param name="id"></param>
         private void HandleSelectedUnitChanged(uint id)
         {
@@ -108,24 +94,31 @@ namespace Assets.Scripts
         /// <param name="simEvent"></param>
         private void HandleSimTurnStateChanged(TurnStateChangeEvent simEvent)
         {
-            if (simEvent.NewState == TurnState.BlueVictory)
+            Color color = simEvent.NewState switch
+            {
+                TurnState.BlueTurn => Color.blue,
+                TurnState.BlueAction => Color.blue,
+                TurnState.BlueVictory => Color.blue,
+                TurnState.RedTurn => Color.red,
+                TurnState.RedAction => Color.red,
+                TurnState.RedVictory => Color.red,
+                _ => throw new ArgumentOutOfRangeException()
+            };
+
+            if (simEvent.NewState is TurnState.BlueVictory or TurnState.RedVictory)
             {
                 victorySplashText.gameObject.SetActive(true);
                 victorySplashText.text = TurnStateExt.ToString(simEvent.NewState);
-                victorySplashText.color = Color.blue;
-                
+                victorySplashText.color = color;
+
                 turnState.gameObject.SetActive(false);
                 endTurnButton.gameObject.SetActive(false);
-                triggerVictoryButton.gameObject.SetActive(false);
                 return;
             }
-            turnState.text = $"{TurnStateExt.ToString(simEvent.NewState)}{Environment.NewLine}{simEvent.TurnCounter + 1}";
-            turnState.color = simEvent.NewState switch
-            {
-                TurnState.BlueTurn => Color.blue,
-                _ => Color.red
-            };
 
+            turnState.text =
+                $"{TurnStateExt.ToString(simEvent.NewState)}{Environment.NewLine}{simEvent.TurnCounter + 1}";
+            turnState.color = color;
             endTurnButton.interactable = simEvent.NewState switch
             {
                 TurnState.BlueTurn => true,

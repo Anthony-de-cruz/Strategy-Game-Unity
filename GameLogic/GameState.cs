@@ -317,11 +317,11 @@ namespace GameLogic
             switch (unit.Team)
             {
                 case UnitTeam.Blue:
-                    if (TurnStateMachine.State != TurnState.BlueTurn)
+                    if (TurnStateMachine.State != TurnState.BlueAction)
                         throw new InvalidOperationException();
                     break;
                 case UnitTeam.Red:
-                    if (TurnStateMachine.State != TurnState.RedTurn)
+                    if (TurnStateMachine.State != TurnState.RedAction)
                         throw new InvalidOperationException();
                     break;
                 default:
@@ -339,15 +339,11 @@ namespace GameLogic
             // Just assume that the move is actually possible, running full Dijkstra would be far too slow.
             // In future, an exact path should be passed in which can be checked.
 
-            TurnStateMachine.BeginAction();
-
             TryGetUnitCoords(unit.Id, out (uint X, uint Y) oldCoords);
             Map[oldCoords.X][oldCoords.Y].UnitId = 0;
             Map[xCoord][yCoord].UnitId = unit.Id;
             unit.Actions -= 1;
             EventBus.Publish(new UnitMovedEvent(unit.Id, oldCoords, (xCoord, yCoord)));
-
-            TurnStateMachine.EndAction();
         }
 
         /// <summary>
@@ -361,12 +357,14 @@ namespace GameLogic
             switch (attacker.Team)
             {
                 case UnitTeam.Blue:
-                    if (TurnStateMachine.State != TurnState.BlueTurn)
-                        throw new InvalidOperationException();
+                    if (TurnStateMachine.State != TurnState.BlueAction)
+                        throw new InvalidOperationException(
+                            $"Blue unit {attacker.Id} cannot attack during {TurnStateMachine.State}");
                     break;
                 case UnitTeam.Red:
-                    if (TurnStateMachine.State != TurnState.RedTurn)
-                        throw new InvalidOperationException();
+                    if (TurnStateMachine.State != TurnState.RedAction)
+                        throw new InvalidOperationException(
+                            $"Red unit {attacker.Id} cannot attack during {TurnStateMachine.State}");
                     break;
                 default:
                     throw new ImpossibleStateException();
@@ -386,14 +384,10 @@ namespace GameLogic
             if (!HasLineOfSight(attackerCoords.X, attackerCoords.Y, targetCoords.X, targetCoords.Y, range))
                 throw new InvalidOperationException();
 
-            TurnStateMachine.BeginAction();
-
             attacker.Actions -= 1;
             target.Strength = target.Strength > Unit.GetDamageByType(attacker.Type, target.Type)
                 ? target.Strength - Unit.GetDamageByType(attacker.Type, target.Type)
                 : 0;
-
-            TurnStateMachine.EndAction();
         }
 
         /// <summary>
@@ -446,6 +440,21 @@ namespace GameLogic
             TryGetUnitCoords(e.UnitId, out (uint X, uint Y) coords);
             Map[coords.X][coords.Y].UnitId = 0;
             _units.Remove(unit);
+
+            if (GetUnitsByTeam(unit.Team).Length != 0) return;
+
+            // End the game if all units on either team are destroyed.
+            switch (unit.Team)
+            {
+                case UnitTeam.Blue:
+                    TurnStateMachine.RedVictory();
+                    break;
+                case UnitTeam.Red:
+                    TurnStateMachine.BlueVictory();
+                    break;
+                default:
+                    throw new ImpossibleStateException();
+            }
         }
 
         /// <summary>
