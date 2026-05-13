@@ -187,7 +187,6 @@ namespace Assets.Scripts
                 $" {_selectedXCoord},{_selectedYCoord} -> {xCoord},{yCoord}");
             _selectedXCoord = xCoord;
             _selectedYCoord = yCoord;
-            SetTileHighlights();
 
             return true;
         }
@@ -202,6 +201,7 @@ namespace Assets.Scripts
         /// <exception cref="ArgumentOutOfRangeException"></exception>
         public void MoveUnit(UnitView unit, uint xCoord, uint yCoord)
         {
+            OnResetHighlight?.Invoke();
             StartCoroutine(MoveRoutine());
             return;
 
@@ -210,8 +210,11 @@ namespace Assets.Scripts
                 _simState.TurnStateMachine.BeginAction();
                 yield return new WaitForSeconds(0.25f);
                 _simState.ActionMoveUnit(ViewToPtr(unit), xCoord, yCoord);
+                _selectedXCoord = xCoord;
+                _selectedYCoord = yCoord;
                 yield return new WaitForSeconds(1f);
                 _simState.TurnStateMachine.EndAction();
+                SetTileHighlights();
             }
         }
 
@@ -255,6 +258,7 @@ namespace Assets.Scripts
         /// <exception cref="InvalidOperationException"></exception>
         public void AttackWithUnit(UnitView unit, UnitView target)
         {
+            OnResetHighlight?.Invoke();
             StartCoroutine(AttackRoutine());
             return;
 
@@ -265,6 +269,7 @@ namespace Assets.Scripts
                 _simState.ActionAttackUnit(ViewToPtr(unit), ViewToPtr(target));
                 yield return new WaitForSeconds(1f);
                 _simState.TurnStateMachine.EndAction();
+                SetTileHighlights();
             }
         }
 
