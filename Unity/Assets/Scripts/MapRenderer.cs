@@ -69,6 +69,7 @@ namespace Assets.Scripts
             simController.OnHighlightTargets += HandleHighlightTargets;
             simController.OnHighlightSelection += HandleHighlightSelection;
             simController.OnResetHighlight += HandleHighlightReset;
+            simController.OnStateReset += HandleStateReset;
         }
 
         private void OnDisable()
@@ -77,6 +78,7 @@ namespace Assets.Scripts
             simController.OnHighlightTargets -= HandleHighlightTargets;
             simController.OnHighlightSelection -= HandleHighlightSelection;
             simController.OnResetHighlight -= HandleHighlightReset;
+            simController.OnStateReset -= HandleStateReset;
         }
 
         /// <summary>
@@ -184,6 +186,15 @@ namespace Assets.Scripts
             for (var x = 0; x < simController.MapX; x++)
             for (var y = 0; y < simController.MapY; y++)
                 _spawnedTilesHighlights[x][y].enabled = false;
+        }
+
+        private void HandleStateReset()
+        {
+            for (var x = 0; x < simController.MapX; x++)
+            for (var y = 0; y < simController.MapY; y++)
+                Destroy(_spawnedTiles[x][y]);
+
+            Render();
         }
     }
 }

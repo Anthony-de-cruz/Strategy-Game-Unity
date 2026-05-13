@@ -1,6 +1,7 @@
 using System;
 using GameLogic;
 using GameLogic.Events;
+using GameLogic.MyApp.Exceptions;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -18,20 +19,28 @@ namespace Assets.Scripts
         /// <summary>
         /// 
         /// </summary>
-        public TMP_Text selectedUnit;
+        public TMP_Text selectedUnitText;
 
         /// <summary>
         /// </summary>
         public Button endTurnButton;
+
+        public Button resetStateButton;
+
+        public Button nextMapButton;
 
         /// <summary>
         /// 
         /// </summary>
         public TMP_Text victorySplashText;
 
+        public TMP_Text remainingEnemiesText;
+
         /// <summary>
         /// </summary>
         public SimController simController;
+
+        private uint _remainingEnemies;
 
         /// <summary>
         ///     Called on game object enabled.
@@ -40,10 +49,33 @@ namespace Assets.Scripts
         {
             simController.OnTurnStateChanged += HandleSimTurnStateChanged;
             simController.OnSelectedUnitChanged += HandleSelectedUnitChanged;
+            simController.OnUnitDamaged += HandleUnitAttacked;
+            simController.OnStateReset +=  HandleResetState;
             endTurnButton.onClick.AddListener(HandleEndTurnButtonClick);
+            resetStateButton.onClick.AddListener(HandleReset);
+            nextMapButton.onClick.AddListener(HandleLoadNew);
 
+            Setup();
+        }
+
+        /// <summary>
+        ///     Called on game object disabled.
+        /// </summary>
+        private void OnDisable()
+        {
+            simController.OnTurnStateChanged -= HandleSimTurnStateChanged;
+            simController.OnSelectedUnitChanged -= HandleSelectedUnitChanged;
+            simController.OnUnitDamaged -= HandleUnitAttacked;
+            simController.OnStateReset -=  HandleResetState;
+            endTurnButton.onClick.RemoveAllListeners();
+            resetStateButton.onClick.RemoveAllListeners();
+            nextMapButton.onClick.RemoveAllListeners();
+        }
+
+        private void Setup()
+        {
             // Initial state.
-            selectedUnit.text = "";
+            selectedUnitText.text = "";
             turnState.text = $"{TurnStateExt.ToString(simController.TurnState)} 1";
             turnState.color = simController.TurnState switch
             {
@@ -56,17 +88,10 @@ namespace Assets.Scripts
                 TurnState.BlueTurn => true,
                 _ => false
             };
+            remainingEnemiesText.text = $"{simController.GetUnitsByTeam(UnitTeam.Red).Length} ENEMY UNITS REMAINING";
 
             victorySplashText.gameObject.SetActive(false);
-        }
 
-        /// <summary>
-        ///     Called on game object disabled.
-        /// </summary>
-        private void OnDisable()
-        {
-            simController.OnTurnStateChanged -= HandleSimTurnStateChanged;
-            endTurnButton.onClick.RemoveAllListeners();
         }
 
         /// <summary>
@@ -82,11 +107,14 @@ namespace Assets.Scripts
         /// <param name="id"></param>
         private void HandleSelectedUnitChanged(uint id)
         {
-            selectedUnit.text = id switch
+            if (id == 0)
             {
-                0 => "",
-                _ => $"Selected unit: {id}"
-            };
+                selectedUnitText.text = "";
+                return;
+            }
+
+            if (!simController.TryGetUnitById(id, out UnitView unit)) throw new ImpossibleStateException();
+            selectedUnitText.text = $"Selected unit: {unit.Type} ({unit.X},{unit.Y})";
         }
 
         /// <summary>
@@ -113,6 +141,8 @@ namespace Assets.Scripts
 
                 turnState.gameObject.SetActive(false);
                 endTurnButton.gameObject.SetActive(false);
+                remainingEnemiesText.gameObject.SetActive(false);
+                selectedUnitText.gameObject.SetActive(false);
                 return;
             }
 
@@ -124,6 +154,29 @@ namespace Assets.Scripts
                 TurnState.BlueTurn => true,
                 _ => false
             };
+        }
+
+        private void HandleUnitAttacked(UnitAttackedEvent simEvent)
+        {
+            if (simEvent.NewStrength != 0) return;
+            // Todo - Minus 1 because the event is triggered before the unit is removed properly.
+            remainingEnemiesText.text =
+                $"{simController.GetUnitsByTeam(UnitTeam.Red).Length - 1} ENEMY UNITS REMAINING";
+        }
+
+        private void HandleReset()
+        {
+            simController.ResetLevel();
+        }
+
+        private void HandleLoadNew()
+        {
+            simController.LoadLevel(1);
+        }
+
+        private void HandleResetState()
+        {
+            Setup();
         }
     }
 }

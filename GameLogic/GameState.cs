@@ -54,16 +54,28 @@ namespace GameLogic
         public GameState(EventBus eventBus, string mapJsonString)
         {
             EventBus = eventBus;
-            (Map, MapX, MapY) = MapLoader.LoadFromJson(mapJsonString);
             TurnStateMachine = new TurnStateMachine(EventBus);
             EventBus.Subscribe<UnitAttackedEvent>(HandleUnitDamaged);
             EventBus.Subscribe<TurnStateChangeEvent>(HandleTurnStateChange);
 
-            for (var i = 0; i < 3; i++) CreateUnit(UnitTeam.Blue, UnitType.Infantry, i + 12, 10);
-            for (var i = 0; i < 2; i++) CreateUnit(UnitTeam.Blue, UnitType.Tank, i + 10, 9);
-            for (var i = 0; i < 3; i++) CreateUnit(UnitTeam.Red, UnitType.Tank, i + 12, 15);
-            for (var i = 0; i < 1; i++) CreateUnit(UnitTeam.Red, UnitType.Infantry, i + 16, 16);
-            for (var i = 0; i < 1; i++) CreateUnit(UnitTeam.Red, UnitType.Infantry, i + 16, 22);
+            (
+                Tile[][] tiles,
+                uint mapX,
+                uint mapY,
+                MapLoader.UnitSpawn[] units
+            ) = MapLoader.LoadFromJson(mapJsonString);
+            Map = tiles;
+            MapX = mapX;
+            MapY = mapY;
+            if (units is null) throw new ArgumentNullException(nameof(units));
+            foreach (MapLoader.UnitSpawn unit in units)
+                CreateUnit(unit.Team, unit.Type, unit.X, unit.Y);
+
+            // for (uint i = 0; i < 3; i++) CreateUnit(UnitTeam.Blue, UnitType.Infantry, i + 12, 10);
+            // for (uint i = 0; i < 2; i++) CreateUnit(UnitTeam.Blue, UnitType.Tank, i + 10, 9);
+            // for (uint i = 0; i < 3; i++) CreateUnit(UnitTeam.Red, UnitType.Tank, i + 12, 15);
+            // for (uint i = 0; i < 1; i++) CreateUnit(UnitTeam.Red, UnitType.Infantry, i + 16, 16);
+            // for (uint i = 0; i < 1; i++) CreateUnit(UnitTeam.Red, UnitType.Infantry, i + 16, 22);
         }
 
         /// <summary>
@@ -410,15 +422,15 @@ namespace GameLogic
         /// <param name="yCoord"></param>
         /// <exception cref="ArgumentOutOfRangeException">Invalid coordinates.</exception>
         /// <exception cref="InvalidOperationException">Coordinate already occupied.</exception>
-        private void CreateUnit(UnitTeam team, UnitType type, int xCoord, int yCoord)
+        private void CreateUnit(UnitTeam team, UnitType type, uint xCoord, uint yCoord)
         {
-            if (xCoord < 0 || xCoord >= Map.Length)
+            if (xCoord >= MapX)
                 throw new ArgumentOutOfRangeException(
-                    $"xCoord ({xCoord}) must be between 0 and {Map.Length}");
+                    $"xCoord ({xCoord}) must be between 0 and {MapX}");
 
-            if (yCoord < 0 || yCoord >= Map[0].Length)
+            if (yCoord >= MapY)
                 throw new ArgumentOutOfRangeException(
-                    $"yCoord ({yCoord}) must be between 0 and {Map[0].Length}");
+                    $"yCoord ({yCoord}) must be between 0 and {MapY}");
 
             if (Map[xCoord][yCoord].UnitId != 0)
                 throw new InvalidOperationException(

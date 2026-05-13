@@ -43,7 +43,7 @@ namespace Assets.Scripts
         /// <summary>
         ///     Simulation event bus. Can be shared between <see cref="_simState"/> instances.
         /// </summary>
-        private readonly EventBus _eventBus = new EventBus();
+        private readonly EventBus _eventBus = new();
 
         /// <summary>
         ///     Simulation state.
@@ -52,6 +52,7 @@ namespace Assets.Scripts
 
         private string _map0JsonString;
         private string _map1JsonString;
+        private uint _currentMap;
 
         ///////////////////
         // UNITY DRIVERS //
@@ -123,6 +124,11 @@ namespace Assets.Scripts
         public event Action OnResetHighlight;
 
         /// <summary>
+        ///     Raised on a complete state reset.
+        /// </summary>
+        public event Action OnStateReset;
+
+        /// <summary>
         ///
         /// </summary>
         /// <param name="jsonString"></param>
@@ -132,6 +138,23 @@ namespace Assets.Scripts
 
             _simState = new GameState(_eventBus, jsonString);
             _simState.TurnStateMachine.Init();
+        }
+
+        public void ResetLevel()
+        {
+            LoadGameState(_currentMap == 0
+                ? _map0JsonString
+                : _map1JsonString);
+            OnStateReset?.Invoke();
+        }
+
+        public void LoadLevel(uint number)
+        {
+            _currentMap = number;
+            LoadGameState(_currentMap == 0
+                ? _map0JsonString
+                : _map1JsonString);
+            OnStateReset?.Invoke();
         }
 
         /// <summary>

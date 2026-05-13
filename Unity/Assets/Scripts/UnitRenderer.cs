@@ -32,6 +32,7 @@ namespace Assets.Scripts
 
             simController.OnUnitDamaged += HandleUnitAttacked;
             simController.OnUnitMoved += HandleUnitMoved;
+            simController.OnStateReset += HandleStateReset;
         }
 
         /// <summary>
@@ -41,6 +42,7 @@ namespace Assets.Scripts
         {
             simController.OnUnitDamaged -= HandleUnitAttacked;
             simController.OnUnitMoved -= HandleUnitMoved;
+            simController.OnStateReset -= HandleStateReset;
 
             foreach ((uint Id, GameObject Obj) unit in _spawnedUnits)
                 Destroy(unit.Obj);
@@ -156,6 +158,18 @@ namespace Assets.Scripts
                         throw new ArgumentOutOfRangeException();
                 }
             }
+        }
+
+        private void HandleStateReset()
+        {
+            foreach ((uint Id, GameObject Obj) unit in _spawnedUnits)
+                Destroy(unit.Obj);
+            _spawnedUnits.Clear();
+
+            foreach (UnitView unit in simController.GetUnitsByTeam(UnitTeam.Blue))
+                RenderUnit(unit);
+            foreach (UnitView unit in simController.GetUnitsByTeam(UnitTeam.Red))
+                RenderUnit(unit);
         }
     }
 }
