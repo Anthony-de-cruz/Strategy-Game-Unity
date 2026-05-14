@@ -1,3 +1,4 @@
+using System.Collections;
 using GameLogic;
 using GameLogic.Events;
 using UnityEngine;
@@ -19,6 +20,7 @@ namespace Assets.Scripts
 
         private SimController _simController;
         private uint _id;
+        private UnitTeam _team;
 
         /// <summary>
         ///     Called on script load.
@@ -35,14 +37,14 @@ namespace Assets.Scripts
         private void OnEnable()
         {
             if (!_simController) return;
-            _simController.OnUnitDamaged += HandleUnitDamaged;
+            _simController.OnUnitDamaged += HandleUnitAttacked;
             _simController.OnActionSpent += HandleUnitSpentAction;
         }
 
         private void OnDisable()
         {
             if (!_simController) return;
-            _simController.OnUnitDamaged -= HandleUnitDamaged;
+            _simController.OnUnitDamaged -= HandleUnitAttacked;
             _simController.OnActionSpent -= HandleUnitSpentAction;
         }
 
@@ -59,7 +61,7 @@ namespace Assets.Scripts
         private void OnDestroy()
         {
             if (!_simController) return;
-            _simController.OnUnitDamaged -= HandleUnitDamaged;
+            _simController.OnUnitDamaged -= HandleUnitAttacked;
             _simController.OnActionSpent -= HandleUnitSpentAction;
         }
 
@@ -70,8 +72,9 @@ namespace Assets.Scripts
         {
             _simController = sim;
             _id = initId;
+            _team = initTeam;
 
-            _simController.OnUnitDamaged += HandleUnitDamaged;
+            _simController.OnUnitDamaged += HandleUnitAttacked;
             _simController.OnActionSpent += HandleUnitSpentAction;
 
             type.text = initType.ToString().ToUpper();
@@ -82,14 +85,45 @@ namespace Assets.Scripts
                 : new Color(0.1f, 0.25f, 0.9f, 0.50f);
         }
 
-        private void HandleUnitDamaged(UnitAttackedEvent e)
+        /// <summary>
+        ///
+        /// </summary>
+        /// <param name="e"></param>
+        private void HandleUnitAttacked(UnitAttackedEvent e)
         {
-            if (e.TargetId != _id) return;
-            if (e.NewStrength == 0) Destroy(this);
+            if (e.TargetId == _id)
+            {
+                if (e.NewStrength == 0)
+                {
+                    Destroy(this);
+                }
+                else
+                {
+                    strength.text = $"STR: {e.NewStrength}";
+                }
 
-            strength.text = $"STR: {e.NewStrength}";
+                return;
+            }
+
+            if (e.AttackerId != _id) return;
+
+            StartCoroutine(FlashRoutine());
+            return;
+
+            IEnumerator FlashRoutine()
+            {
+                background.color = Color.white;
+                yield return new WaitForSeconds(0.25f);
+                background.color = _team == UnitTeam.Red
+                    ? new Color(0.8f, 0.1f, 0.1f, 0.50f)
+                    : new Color(0.1f, 0.25f, 0.9f, 0.50f);
+            }
         }
 
+        /// <summary>
+        ///
+        /// </summary>
+        /// <param name="e"></param>
         private void HandleUnitSpentAction(UnitSpentActionEvent e)
         {
             if (e.UnitId != _id) return;
