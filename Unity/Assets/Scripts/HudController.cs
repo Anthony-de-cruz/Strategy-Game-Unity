@@ -90,8 +90,12 @@ namespace Assets.Scripts
             };
             remainingEnemiesText.text = $"{simController.GetUnitsByTeam(UnitTeam.Red).Length} ENEMY UNITS REMAINING";
 
-            victorySplashText.gameObject.SetActive(false);
 
+            turnState.gameObject.SetActive(true);
+            endTurnButton.gameObject.SetActive(true);
+            remainingEnemiesText.gameObject.SetActive(true);
+            selectedUnitText.gameObject.SetActive(true);
+            victorySplashText.gameObject.SetActive(false);
         }
 
         /// <summary>
