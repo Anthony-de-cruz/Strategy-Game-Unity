@@ -1,8 +1,6 @@
 using System;
-using System.IO;
-using System.Runtime.Serialization;
-using System.Runtime.Serialization.Json;
 using System.Text;
+using Newtonsoft.Json;
 
 namespace GameLogic
 {
@@ -15,7 +13,8 @@ namespace GameLogic
         /// <returns></returns>
         public static (Tile[][], uint, uint, UnitSpawn[]) LoadFromJson(string jsonString)
         {
-            MapData mapData = Deserialize(jsonString);
+            var mapData = JsonConvert.DeserializeObject<MapData>(jsonString);
+            if (mapData == null) throw new InvalidOperationException("Map JSON could not be deserialized.");
 
             var map = new Tile[mapData.Width][];
             for (var x = 0; x < mapData.Width; x++)
@@ -32,17 +31,13 @@ namespace GameLogic
             return (map, mapData.Width, mapData.Height, units);
         }
 
-        public static string TileMapToJson(Tile[][] map)
-        {
-            MapData mapData = CreateMapData(map);
-            return Serialize(mapData);
-        }
-
-        public static string TileMapToJson(Tile[][] map, UnitSpawn[] units)
+        public static string MapToJson(Tile[][] map, UnitSpawn[] units)
         {
             MapData mapData = CreateMapData(map);
             WriteUnits(mapData, units);
-            return Serialize(mapData);
+            return JsonConvert.SerializeObject(
+                mapData,
+                new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
         }
 
         private static MapData CreateMapData(Tile[][] map)
@@ -84,19 +79,17 @@ namespace GameLogic
             if (mapData.RedUnits != null)
                 index = ReadTeamUnits(mapData.RedUnits, UnitTeam.Red, units, index);
 
-            if (mapData.Units != null)
+            if (mapData.Units == null) return units;
+
+            foreach (UnitData unitData in mapData.Units)
             {
-                for (var i = 0; i < mapData.Units.Length; i++)
-                {
-                    UnitData unitData = mapData.Units[i];
-                    units[index] = new UnitSpawn(
-                        UnitTeamFromString(unitData.Team),
-                        UnitTypeFromString(unitData.Type),
-                        unitData.X,
-                        unitData.Y
-                    );
-                    index++;
-                }
+                units[index] = new UnitSpawn(
+                    UnitTeamFromString(unitData.Team),
+                    UnitTypeFromString(unitData.Type),
+                    unitData.X,
+                    unitData.Y
+                );
+                index++;
             }
 
             return units;
@@ -213,50 +206,34 @@ namespace GameLogic
             };
         }
 
-
-        private static MapData Deserialize(string jsonString)
-        {
-            var serialiser = new DataContractJsonSerializer(typeof(MapData),
-                new DataContractJsonSerializerSettings { UseSimpleDictionaryFormat = true });
-            using var stream = new MemoryStream(Encoding.UTF8.GetBytes(jsonString));
-            return (MapData)serialiser.ReadObject(stream);
-        }
-
-        private static string Serialize(MapData mapData)
-        {
-            var serialiser = new DataContractJsonSerializer(typeof(MapData),
-                new DataContractJsonSerializerSettings { UseSimpleDictionaryFormat = true });
-            using var stream = new MemoryStream();
-            serialiser.WriteObject(stream, mapData);
-            return Encoding.UTF8.GetString(stream.ToArray());
-        }
-
-
-
-        [DataContract]
         private class MapData
         {
-            [DataMember(Name = "width")] public uint Width { get; set; }
-            [DataMember(Name = "height")] public uint Height { get; set; }
-            [DataMember(Name = "tiles")] public string[] Tiles { get; set; }
+            [JsonProperty("width")] public uint Width { get; set; }
 
-            [DataMember(Name = "blueUnits", EmitDefaultValue = false)]
+            [JsonProperty("height")] public uint Height { get; set; }
+
+            [JsonProperty("tiles")] public string[] Tiles { get; set; }
+
+            [JsonProperty("blueUnits", NullValueHandling = NullValueHandling.Ignore)]
             public UnitData[] BlueUnits { get; set; }
 
-            [DataMember(Name = "redUnits", EmitDefaultValue = false)]
+            [JsonProperty("redUnits", NullValueHandling = NullValueHandling.Ignore)]
             public UnitData[] RedUnits { get; set; }
 
-            [DataMember(Name = "units", EmitDefaultValue = false)]
+            [JsonProperty("units", NullValueHandling = NullValueHandling.Ignore)]
             public UnitData[] Units { get; set; }
         }
 
-        [DataContract]
         private class UnitData
         {
-            [DataMember(Name = "team", EmitDefaultValue = false)] public string Team { get; set; }
-            [DataMember(Name = "type")] public string Type { get; set; }
-            [DataMember(Name = "x")] public uint X { get; set; }
-            [DataMember(Name = "y")] public uint Y { get; set; }
+            [JsonProperty("team", NullValueHandling = NullValueHandling.Ignore)]
+            public string Team { get; set; }
+
+            [JsonProperty("type")] public string Type { get; set; }
+
+            [JsonProperty("x")] public uint X { get; set; }
+
+            [JsonProperty("y")] public uint Y { get; set; }
         }
 
         /// <summary>

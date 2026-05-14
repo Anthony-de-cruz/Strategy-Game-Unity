@@ -4,6 +4,25 @@ namespace GameLogicTests;
 
 public class MapLoaderTests
 {
+    [Theory]
+    [InlineData("map0.json")]
+    [InlineData("map1.json")]
+    public void LoadFromJson_LoadsStreamingAssetMaps(string fileName)
+    {
+        string mapsDirectory = FindMapsDirectory();
+        string json = File.ReadAllText(Path.Combine(mapsDirectory, fileName));
+
+        (Tile[][] loadedMap, uint width, uint height, MapLoader.UnitSpawn[] loadedUnits) =
+            MapLoader.LoadFromJson(json);
+
+        Assert.Equal(25u, width);
+        Assert.Equal(25u, height);
+        Assert.Equal((int)width, loadedMap.Length);
+        Assert.All(loadedMap, column => Assert.Equal((int)height, column.Length));
+        Assert.NotNull(loadedUnits);
+        Assert.NotEmpty(loadedUnits);
+    }
+
     [Fact]
     public void TileMapToJson_RoundTripsUnits()
     {
@@ -18,7 +37,7 @@ public class MapLoaderTests
             new MapLoader.UnitSpawn(UnitTeam.Red, UnitType.Tank, 1, 0)
         };
 
-        string json = MapLoader.TileMapToJson(map, units);
+        string json = MapLoader.MapToJson(map, units);
         (Tile[][] loadedMap, uint width, uint height, MapLoader.UnitSpawn[] loadedUnits) =
             MapLoader.LoadFromJson(json);
 
@@ -38,5 +57,24 @@ public class MapLoaderTests
         Assert.Equal(UnitType.Tank, loadedUnits[1].Type);
         Assert.Equal(1u, loadedUnits[1].X);
         Assert.Equal(0u, loadedUnits[1].Y);
+    }
+
+    private static string FindMapsDirectory()
+    {
+        DirectoryInfo? directory = new(AppContext.BaseDirectory);
+        while (directory != null)
+        {
+            string candidate = Path.Combine(
+                directory.FullName,
+                "Unity",
+                "Assets",
+                "StreamingAssets",
+                "Maps");
+            if (Directory.Exists(candidate)) return candidate;
+
+            directory = directory.Parent;
+        }
+
+        throw new DirectoryNotFoundException("Could not find Unity/Assets/StreamingAssets/Maps.");
     }
 }

@@ -4,13 +4,22 @@
 	<TargetFramework>netstandard2.1</TargetFramework>
     <ImplicitUsings>disable</ImplicitUsings> 
     <Nullable>disable</Nullable>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
   </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+  </ItemGroup>
 
   <Target Name="PostBuildCopy" AfterTargets="Build">
     <MakeDir Directories="$(MSBuildProjectDirectory)\..\Unity\Assets\Plugins" />
     <Copy 
       SourceFiles="$(TargetDir)$(TargetName).dll"
       DestinationFiles="$(MSBuildProjectDirectory)\..\Unity\Assets\Plugins\$(TargetName).dll"
+      SkipUnchangedFiles="true" />
+    <Copy
+      SourceFiles="$(TargetDir)Newtonsoft.Json.dll"
+      DestinationFiles="$(MSBuildProjectDirectory)\..\Unity\Assets\Plugins\Newtonsoft.Json.dll"
       SkipUnchangedFiles="true" />
   </Target>
 
