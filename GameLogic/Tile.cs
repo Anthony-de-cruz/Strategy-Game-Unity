@@ -1,6 +1,4 @@
-﻿using GameLogic.MyApp.Exceptions;
-
-namespace GameLogic
+﻿namespace GameLogic
 {
     /// <summary>
     /// Types of tiles on the map.

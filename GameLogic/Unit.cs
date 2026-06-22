@@ -1,7 +1,6 @@
 ﻿using System;
 
 using GameLogic.Events;
-using GameLogic.MyApp.Exceptions;
 
 namespace GameLogic
 {
