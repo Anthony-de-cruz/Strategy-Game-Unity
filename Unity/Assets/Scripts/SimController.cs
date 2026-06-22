@@ -3,7 +3,6 @@ using System.Collections;
 using System.IO;
 using GameLogic;
 using GameLogic.Events;
-using GameLogic.MyApp.Exceptions;
 using UnityEngine;
 
 namespace Assets.Scripts
@@ -176,7 +175,7 @@ namespace Assets.Scripts
                 return false;
             }
 
-            if (!TryGetUnitById(id, out UnitView unit)) throw new ImpossibleStateException();
+            if (!TryGetUnitById(id, out UnitView unit)) throw new InvalidConfigException();
             if (unit.Team != ClientTeam) return false;
 
             SelectedId = id;
@@ -211,7 +210,7 @@ namespace Assets.Scripts
         {
             if (SelectedId == 0) return false;
             if (_simState.Map[xCoord][yCoord].UnitId != 0) return false;
-            if (!TryGetUnitById(SelectedId, out UnitView unit)) throw new ImpossibleStateException();
+            if (!TryGetUnitById(SelectedId, out UnitView unit)) throw new InvalidConfigException();
             // Dijkstra is slow, in future, an exact path should be passed in which can be checked.
             if (Array.IndexOf(GetMoveableCoords(unit), (xCoord, yCoord)) == -1) return false;
 
@@ -272,7 +271,7 @@ namespace Assets.Scripts
             if (_simState.Map[xCoord][yCoord].UnitId == 0) return false;
             if (!TryGetUnitById(SelectedId, out UnitView unit) ||
                 !TryGetUnitById(_simState.Map[xCoord][yCoord].UnitId, out UnitView target))
-                throw new ImpossibleStateException();
+                throw new InvalidConfigException();
 
             bool isAttackable = false;
             foreach (UnitView v in GetAttackableUnits(unit))
@@ -331,7 +330,7 @@ namespace Assets.Scripts
 
             if (SelectedId == 0) return;
 
-            if (!TryGetUnitById(SelectedId, out UnitView unit)) throw new ImpossibleStateException();
+            if (!TryGetUnitById(SelectedId, out UnitView unit)) throw new InvalidConfigException();
 
             OnHighlightSelection?.Invoke((unit.X, unit.Y));
             if (unit.Actions == 0) return;
@@ -391,7 +390,7 @@ namespace Assets.Scripts
             }
 
             if (!_simState.TryGetUnitCoords(u.Id, out (uint X, uint Y) coords))
-                throw new ImpossibleStateException();
+                throw new InvalidConfigException();
             unit = new UnitView(u, coords.X, coords.Y);
             return true;
         }
@@ -408,7 +407,7 @@ namespace Assets.Scripts
             for (var i = 0; i < units.Length; i++)
             {
                 if (!_simState.TryGetUnitCoords(units[i].Id, out (uint X, uint Y) coords))
-                    throw new ImpossibleStateException();
+                    throw new InvalidConfigException();
                 views[i] = new UnitView(units[i], coords.X, coords.Y);
             }
 
@@ -436,7 +435,7 @@ namespace Assets.Scripts
             for (var i = 0; i < units.Length; i++)
             {
                 if (!_simState.TryGetUnitCoords(units[i].Id, out (uint X, uint Y) coords))
-                    throw new ImpossibleStateException();
+                    throw new InvalidConfigException();
                 views[i] = new UnitView(units[i], coords.X, coords.Y);
             }
 
@@ -445,7 +444,7 @@ namespace Assets.Scripts
 
         private Unit ViewToPtr(UnitView unit)
             => !_simState.TryGetUnit(unit.Id, out Unit u)
-                ? throw new ImpossibleStateException()
+                ? throw new InvalidConfigException()
                 : u;
 
         ////////////////////

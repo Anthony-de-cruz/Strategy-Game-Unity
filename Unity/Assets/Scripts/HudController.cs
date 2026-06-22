@@ -1,7 +1,6 @@
 using System;
 using GameLogic;
 using GameLogic.Events;
-using GameLogic.MyApp.Exceptions;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -117,7 +116,7 @@ namespace Assets.Scripts
                 return;
             }
 
-            if (!simController.TryGetUnitById(id, out UnitView unit)) throw new ImpossibleStateException();
+            if (!simController.TryGetUnitById(id, out UnitView unit)) throw new InvalidConfigException();
             selectedUnitText.text = $"Selected unit: {unit.Type} ({unit.X},{unit.Y})";
         }
 

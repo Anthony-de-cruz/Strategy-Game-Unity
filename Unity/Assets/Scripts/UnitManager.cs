@@ -2,13 +2,12 @@
 using System.Collections.Generic;
 using GameLogic;
 using GameLogic.Events;
-using GameLogic.MyApp.Exceptions;
 using UnityEngine;
 
 
 namespace Assets.Scripts
 {
-    public class UnitController : MonoBehaviour
+    public class UnitManager : MonoBehaviour
     {
         public SimController simController;
 

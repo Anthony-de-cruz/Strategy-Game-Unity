@@ -23,7 +23,6 @@ namespace Assets.Scripts
         public Color highlightMovementColour = new(0.1f, 0.9f, 1f, 0.45f);
         public Color highlightTargetColour = new(1f, 0.1f, 0f, 0.45f);
         public TilePrefab[] tilePrefabs;
-        public Transform tileParent;
 
         private readonly Dictionary<TileType, List<GameObject>> _prefabsByType = new();
         private GameObject[][] _spawnedTiles;
@@ -37,15 +36,10 @@ namespace Assets.Scripts
         private void Awake()
         {
             foreach (TilePrefab entry in tilePrefabs)
-            {
                 if (_prefabsByType.TryGetValue(entry.type, out List<GameObject> value))
                     value.Add(entry.prefab);
                 else
                     _prefabsByType[entry.type] = new List<GameObject> { entry.prefab };
-            }
-
-            if (tileParent == null)
-                tileParent = transform;
         }
 
         /// <summary>
@@ -79,6 +73,10 @@ namespace Assets.Scripts
             simController.OnHighlightSelection -= HandleHighlightSelection;
             simController.OnResetHighlight -= HandleHighlightReset;
             simController.OnStateReset -= HandleStateReset;
+
+            for (var y = 0; y < simController.MapY; y++)
+            for (var x = 0; x < simController.MapX; x++)
+                Destroy(_spawnedTiles[x][y]);
         }
 
         /// <summary>
@@ -113,7 +111,7 @@ namespace Assets.Scripts
                         position,
                         // Random rotation.
                         Quaternion.Euler(0f, UnityEngine.Random.Range(0, 4) * 90f, 0f),
-                        tileParent
+                        transform
                     );
                     var highlightPlaneRenderer = tileObject
                         .transform
