@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace Assets.Scripts
 {
-    public class UnitRenderer : MonoBehaviour
+    public class UnitController : MonoBehaviour
     {
         public SimController simController;
 
@@ -96,7 +96,7 @@ namespace Assets.Scripts
             foreach ((uint id, GameObject obj) unit in _spawnedUnits)
             {
                 if (unit.id != e.UnitId) continue;
-                if (!simController.TryGetUnitById(unit.id, out UnitView view)) throw new ImpossibleStateException();
+                if (!simController.TryGetUnitById(unit.id, out UnitView view)) throw new InvalidConfigException();
 
                 switch (view.Type)
                 {
@@ -145,7 +145,7 @@ namespace Assets.Scripts
             foreach ((uint id, GameObject obj) unit in _spawnedUnits)
             {
                 if (unit.id != e.AttackerId) continue;
-                if (!simController.TryGetUnitById(unit.id, out UnitView view)) throw new ImpossibleStateException();
+                if (!simController.TryGetUnitById(unit.id, out UnitView view)) throw new InvalidConfigException();
                 switch (view.Type)
                 {
                     case UnitType.Infantry:
