@@ -1,4 +1,5 @@
 using System;
+using System.Buffers.Binary;
 using System.Text;
 using Newtonsoft.Json;
 
@@ -29,6 +30,23 @@ namespace GameLogic
             UnitSpawn[] units = ReadUnits(mapData);
 
             return (map, mapData.Width, mapData.Height, units);
+        }
+
+        public static ushort[] LoadHeightMapFromRaw(ReadOnlySpan<byte> bytes, int width, int height)
+        {
+            int sampleCount = width * height;
+            int expectedBytes = sampleCount * sizeof(ushort);
+            if (bytes.Length != expectedBytes) throw new ImpossibleStateException();
+
+            var samples = new ushort[sampleCount];
+            // Read out every 16 bits into an ushort.
+            for (var i = 0; i < samples.Length; i++)
+            {
+                samples[i] = BinaryPrimitives.ReadUInt16LittleEndian(
+                    bytes.Slice(i * sizeof(ushort), sizeof(ushort)));
+            }
+
+            return samples;
         }
 
         public static string MapToJson(Tile[][] map, UnitSpawn[] units)
