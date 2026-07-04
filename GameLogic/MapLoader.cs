@@ -1,5 +1,4 @@
 using System;
-using System.Buffers.Binary;
 using System.Text;
 using Newtonsoft.Json;
 
@@ -32,22 +31,53 @@ namespace GameLogic
             return (map, mapData.Width, mapData.Height, units);
         }
 
-        public static ushort[] LoadHeightMapFromRaw(ReadOnlySpan<byte> bytes, int width, int height)
+        /// <summary>
+        /// Generate a normalized heightmap from 32-bit RGBA greyscale RAW image bytes.
+        /// </summary>
+        /// <param name="bytes">Height map encoded as 32-bit RGBA greyscale RAW.</param>
+        /// <param name="width">Map width.</param>
+        /// <param name="height">Map height.</param>
+        /// <param name="scale">Scale multiplier for normalized height map.</param>
+        /// <returns>[x,y] 2d array height map.</returns>
+        /// <exception cref="ImpossibleStateException">Length of <paramref name="bytes"/> does not match expected size or a pixel is not opaque greyscale RGBA.</exception>
+        public static uint[,] LoadHeightMapFromRaw(ReadOnlySpan<byte> bytes, uint width, uint height, int scale)
         {
-            int sampleCount = width * height;
-            int expectedBytes = sampleCount * sizeof(ushort);
-            if (bytes.Length != expectedBytes) throw new ImpossibleStateException();
+            // // For every 16-bit integer greyscale pixel, map to 2d array and normalize to map scale.
+            // // ushort / 65535f -> 0.0 to 1.0
+            // var samples = new uint[width, height];
+            // for (uint y = 0; y < height; y++)
+            // for (uint x = 0; x < width; x++)
+            //     samples[x, y] = (uint)(BinaryPrimitives.ReadUInt16LittleEndian(bytes.Slice(
+            //         (int)(x + y * width) * sizeof(ushort),
+            //         sizeof(ushort))));
+            //     //) / 65535f * scale);
 
-            var samples = new ushort[sampleCount];
-            // Read out every 16 bits into an ushort.
-            for (var i = 0; i < samples.Length; i++)
+            uint expectedBytes = width * height * 4;
+            if (bytes.Length != expectedBytes)
+                throw new ImpossibleStateException($"Expected {expectedBytes} bytes, got {bytes.Length}");
+
+            var samples = new uint[width, height];
+
+            for (uint y = 0; y < height; y++)
+            for (uint x = 0; x < width; x++)
             {
-                samples[i] = BinaryPrimitives.ReadUInt16LittleEndian(
-                    bytes.Slice(i * sizeof(ushort), sizeof(ushort)));
+                uint offset = (x + y * width) * 4;
+
+                byte r = bytes[(int)offset];
+                byte g = bytes[(int)offset + 1];
+                byte b = bytes[(int)offset + 2];
+                byte a = bytes[(int)offset + 3];
+                if (r != g || r != b || a != 255)
+                    throw new ImpossibleStateException(
+                        $"Height pixel at ({x},{y}) is not opaque greyscale RGBA: ({r},{g},{b},{a})");
+
+                samples[x, y] = (uint)(r * scale / 255);
             }
 
             return samples;
         }
+
+        // AI Generated Code Below
 
         public static string MapToJson(Tile[][] map, UnitSpawn[] units)
         {

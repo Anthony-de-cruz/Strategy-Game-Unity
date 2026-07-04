@@ -21,6 +21,15 @@
       SourceFiles="$(TargetDir)Newtonsoft.Json.dll"
       DestinationFiles="$(MSBuildProjectDirectory)\..\Unity\Assets\Plugins\Newtonsoft.Json.dll"
       SkipUnchangedFiles="true" />
+	<MakeDir Directories="$(MSBuildProjectDirectory)\..\Unity2\Assets\Plugins" />
+    <Copy 
+      SourceFiles="$(TargetDir)$(TargetName).dll"
+      DestinationFiles="$(MSBuildProjectDirectory)\..\Unity2\Assets\Plugins\$(TargetName).dll"
+      SkipUnchangedFiles="true" />
+    <Copy
+      SourceFiles="$(TargetDir)Newtonsoft.Json.dll"
+      DestinationFiles="$(MSBuildProjectDirectory)\..\Unity2\Assets\Plugins\Newtonsoft.Json.dll"
+      SkipUnchangedFiles="true" />
   </Target>
 
 </Project>

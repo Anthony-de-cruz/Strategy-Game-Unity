@@ -22,4 +22,8 @@
         <ProjectReference Include="..\GameLogic\GameLogic.csproj"/>
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="TestMaps\" />
+    </ItemGroup>
+
 </Project>

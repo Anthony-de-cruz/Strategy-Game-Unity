@@ -95,9 +95,9 @@ namespace Assets.Scripts
                 },
                 {
                     new(0, TileType.Grassland),
-                    new(0, TileType.Grassland),
-                    new(1, TileType.Woodland),
+                    new(1, TileType.Grassland),
                     new(2, TileType.Woodland),
+                    new(5, TileType.Woodland),
                     new(5, TileType.Building),
                     new(3, TileType.Building),
                     new(1, TileType.Paved),
@@ -107,8 +107,8 @@ namespace Assets.Scripts
                     new(0, TileType.Grassland),
                     new(1, TileType.Grassland),
                     new(1, TileType.Woodland),
-                    new(1, TileType.Woodland),
-                    new(2, TileType.Paved),
+                    new(5, TileType.Woodland),
+                    new(5, TileType.Paved),
                     new(2, TileType.Paved),
                     new(1, TileType.Paved),
                     new(0, TileType.Grassland)
@@ -187,6 +187,7 @@ namespace Assets.Scripts
         private void OnDisable()
         {
             simController.OnStateReset -= HandleStateReset;
+            foreach (GameObject thing in _terrainDetails) Destroy(thing);
         }
 
         /// <summary>
@@ -276,8 +277,6 @@ namespace Assets.Scripts
                     GameObject prefab = heightMap[x, y].Type is TileType.Woodland
                         ? prefabTrees
                         : prefabBuilding;
-                    if (heightMap[x, y].Type is TileType.Building)
-                        Console.WriteLine("TEST");
                     Vector3 position = new(
                         x * scale + scale * 0.5f,
                         heightMap[x, y].Height,

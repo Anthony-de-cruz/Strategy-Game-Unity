@@ -1,12 +1,2 @@
 fileFormatVersion: 2
-guid: 0cb8ab078f55098479017f3348af83b8
-MonoImporter:
-  externalObjects: {}
-  serializedVersion: 2
-  defaultReferences:
-  - infantryPrefab: {fileID: 1098347322732293101, guid: 2d62e1e8ea8e2d049b98d65a65725a13, type: 3}
-  executionOrder: -500
-  icon: {instanceID: 0}
-  userData: 
-  assetBundleName: 
-  assetBundleVariant: 
+guid: 2a2912c95143ce14badc8a2f6765d87d
