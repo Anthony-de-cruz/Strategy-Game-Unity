@@ -1,5 +1,4 @@
 ﻿using System;
-
 using GameLogic.Events;
 
 namespace GameLogic
@@ -45,17 +44,7 @@ namespace GameLogic
         /// <summary>
         ///
         /// </summary>
-        public uint Actions
-        {
-            get => _actions;
-            set
-            {
-                if (value == _actions) return;
-                _eventBus.Publish(new UnitSpentActionEvent(Id, _actions, value));
-                _actions = value;
-            }
-        }
-        private uint _actions;
+        public uint Actions { get; set; }
 
         /// <summary>
         /// 
@@ -63,31 +52,24 @@ namespace GameLogic
         public uint Strength { get; set; }
 
         /// <summary>
-        /// 
-        /// </summary>
-        private readonly EventBus _eventBus;
-
-        /// <summary>
         /// Constructor for <see cref="Unit"/>.
         /// </summary>
         /// <param name="id">The unit ID.</param>
         /// <param name="team">The team the unit belongs to.</param>
         /// <param name="type">The type of unit.</param>
-        /// <param name="eventBus">Event bus to publish to.</param>
-        public Unit(uint id, UnitTeam team, UnitType type, EventBus eventBus)
+        public Unit(uint id, UnitTeam team, UnitType type)
         {
             Id = id;
             Team = team;
             Type = type;
-            _eventBus = eventBus;
 
             Strength = type switch
             {
                 UnitType.Infantry => 5,
                 UnitType.Tank => 10,
-                _ => throw new NotImplementedException($"Unhandled unit type: {type}."),
+                _ => throw new ImpossibleStateException($"Unhandled unit type: {type}"),
             };
-            _actions = 2;
+            Actions = 2;
         }
 
         /// <summary>
@@ -110,7 +92,7 @@ namespace GameLogic
             {
                 UnitType.Infantry => 6,
                 UnitType.Tank => 8,
-                _ => throw new ImpossibleStateException()
+                _ => throw new ImpossibleStateException($"Unhandled unit type: {unitType}")
             };
         }
 
@@ -125,7 +107,7 @@ namespace GameLogic
             {
                 UnitType.Infantry => 4,
                 UnitType.Tank => 4,
-                _ => throw new ImpossibleStateException()
+                _ => throw new ImpossibleStateException($"Unhandled unit type: {unitType}")
             };
         }
 
@@ -143,15 +125,15 @@ namespace GameLogic
                 {
                     UnitType.Infantry => 2,
                     UnitType.Tank => 2,
-                    _ => throw new ImpossibleStateException()
+                    _ => throw new ImpossibleStateException($"Unhandled unit type: {unitType}")
                 },
                 UnitType.Tank => targetType switch
                 {
                     UnitType.Infantry => 3,
                     UnitType.Tank => 5,
-                    _ => throw new ImpossibleStateException()
+                    _ => throw new ImpossibleStateException($"Unhandled unit type: {unitType}")
                 },
-                _ => throw new ImpossibleStateException()
+                _ => throw new ImpossibleStateException($"Unhandled unit type: {unitType}")
             };
         }
     }

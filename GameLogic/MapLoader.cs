@@ -1,5 +1,5 @@
 using System;
-using System.Text;
+using System.Collections.Generic;
 using Newtonsoft.Json;
 
 namespace GameLogic
@@ -7,28 +7,110 @@ namespace GameLogic
     public static class MapLoader
     {
         /// <summary>
-        ///
+        /// The maximum map name length.
         /// </summary>
-        /// <param name="jsonString"></param>
-        /// <returns></returns>
-        public static (Tile[][], uint, uint, UnitSpawn[]) LoadFromJson(string jsonString)
-        {
-            var mapData = JsonConvert.DeserializeObject<MapData>(jsonString);
-            if (mapData == null) throw new InvalidOperationException("Map JSON could not be deserialized.");
+        private const int MaxMapNameLength = 256;
 
-            var map = new Tile[mapData.Width][];
-            for (var x = 0; x < mapData.Width; x++)
+        /// <summary>
+        /// The maximum total map tile count.
+        /// </summary>
+        private const int MaxMapSize = 5000;
+
+        /// <summary>
+        /// Load map metadata from a JSON style string.
+        /// </summary>
+        /// <param name="json">The JSON style string.</param>
+        /// <returns></returns>
+        /// <exception cref="InvalidOperationException">Invalid map data.</exception>
+        public static (string, uint, uint, UnitData[]) LoadMetaFromJson(string json)
+        {
+            #nullable enable
+            JsonMapData? jsonMapData;
+            try
             {
-                map[x] = new Tile[mapData.Height];
-                for (var y = 0; y < mapData.Height; y++)
-                    map[x][y] = new Tile(KeyToType(mapData.Tiles[y][x].ToString()), 0);
+                jsonMapData = JsonConvert.DeserializeObject<JsonMapData>(json);
+            }
+            catch (Exception e)
+            {
+                throw new InvalidOperationException("Failed to deserialize map data", e);
             }
 
-            //Array.Reverse(map);
+            if (jsonMapData is null)
+                throw new InvalidOperationException("Failed to deserialize map data");
+            #nullable disable
 
-            UnitSpawn[] units = ReadUnits(mapData);
+            if (jsonMapData.Name.Length == 0 ||
+                jsonMapData.Name.Length > MaxMapNameLength)
+                throw new InvalidOperationException(
+                    $"Invalid map name: {jsonMapData.Name}. " +
+                    $"Expected length {MaxMapNameLength} but found {jsonMapData.Name.Length}");
 
-            return (map, mapData.Width, mapData.Height, units);
+            if (jsonMapData.Width * jsonMapData.Height > MaxMapSize)
+                throw new InvalidOperationException(
+                    $"Invalid map size: {jsonMapData.Width},{jsonMapData.Height}. " +
+                    $"Exceeds {MaxMapSize} but found {jsonMapData.Width * jsonMapData.Height}");
+
+            var units = new UnitData[jsonMapData.Units.Length];
+            for (var i = 0; i < units.Length; i++)
+                units[i] = new UnitData(
+                    jsonMapData.Units[i].Team switch
+                    {
+                        nameof(UnitTeam.Blue) => UnitTeam.Blue,
+                        nameof(UnitTeam.Red) => UnitTeam.Red,
+                        _ => throw new InvalidOperationException($"Unhandled team type: {jsonMapData.Units[i].Team}")
+                    },
+                    jsonMapData.Units[i].Type switch
+                    {
+                        nameof(UnitType.Infantry) => UnitType.Infantry,
+                        nameof(UnitType.Tank) => UnitType.Tank,
+                        _ => throw new InvalidOperationException($"Unhandled unit type: {jsonMapData.Units[i].Type}")
+                    },
+                    jsonMapData.Units[i].X,
+                    jsonMapData.Units[i].Y);
+
+            return (jsonMapData.Name, jsonMapData.Width, jsonMapData.Height, units);
+        }
+
+        /// <summary>
+        /// Generate a terrain map from 32-bit RGBA RAW image bytes.
+        /// </summary>
+        /// <param name="bytes">Height map encoded as 32-bit RGBA RAW.</param>
+        /// <param name="width">Map width.</param>
+        /// <param name="height">Map height.</param>
+        /// <returns>[x,y] 2d array terrain map.</returns>
+        /// <exception cref="InvalidOperationException">Length of <paramref name="bytes"/> does not match expected size or a pixel is not recognized value.</exception>
+        public static TileType[,] LoadTerrainMapFromRaw(ReadOnlySpan<byte> bytes, uint width, uint height)
+        {
+            uint expectedBytes = width * height * 4;
+            if (bytes.Length != expectedBytes)
+                throw new InvalidOperationException($"Expected {expectedBytes} bytes, got {bytes.Length}");
+
+            var samples = new TileType[width, height];
+
+            for (uint y = 0; y < height; y++)
+            for (uint x = 0; x < width; x++)
+            {
+                uint offset = (x + y * width) * 4;
+
+                byte r = bytes[(int)offset];
+                byte g = bytes[(int)offset + 1];
+                byte b = bytes[(int)offset + 2];
+                byte a = bytes[(int)offset + 3];
+                if (a != 255)
+                    throw new InvalidOperationException(
+                        $"Terrain pixel at ({x},{y}) is not opaque RGBA: ({r},{g},{b},{a})");
+                if (r == 64 && g == 64 && b == 32)
+                    samples[x, y] = TileType.Paved;
+                else if (r == 255 && g == 160 && b == 255)
+                    samples[x, y] = TileType.Building;
+                else if (r == 0 && g == 245 && b == 0)
+                    samples[x, y] = TileType.Grassland;
+                else if (r == 0 && g == 165 && b == 0)
+                    samples[x, y] = TileType.Woodland;
+                else throw new InvalidOperationException($"Invalid terrain type at ({x},{y}): ({r},{g},{b},{a})");
+            }
+
+            return samples;
         }
 
         /// <summary>
@@ -39,8 +121,8 @@ namespace GameLogic
         /// <param name="height">Map height.</param>
         /// <param name="scale">Scale multiplier for normalized height map.</param>
         /// <returns>[x,y] 2d array height map.</returns>
-        /// <exception cref="ImpossibleStateException">Length of <paramref name="bytes"/> does not match expected size or a pixel is not opaque greyscale RGBA.</exception>
-        public static uint[,] LoadHeightMapFromRaw(ReadOnlySpan<byte> bytes, uint width, uint height, int scale)
+        /// <exception cref="InvalidOperationException">Length of <paramref name="bytes"/> does not match expected size or a pixel is not opaque greyscale RGBA.</exception>
+        public static float[,] LoadHeightMapFromRaw(ReadOnlySpan<byte> bytes, uint width, uint height, int scale)
         {
             // // For every 16-bit integer greyscale pixel, map to 2d array and normalize to map scale.
             // // ushort / 65535f -> 0.0 to 1.0
@@ -54,9 +136,9 @@ namespace GameLogic
 
             uint expectedBytes = width * height * 4;
             if (bytes.Length != expectedBytes)
-                throw new ImpossibleStateException($"Expected {expectedBytes} bytes, got {bytes.Length}");
+                throw new InvalidOperationException($"Expected {expectedBytes} bytes, got {bytes.Length}");
 
-            var samples = new uint[width, height];
+            var samples = new float[width, height];
 
             for (uint y = 0; y < height; y++)
             for (uint x = 0; x < width; x++)
@@ -68,226 +150,61 @@ namespace GameLogic
                 byte b = bytes[(int)offset + 2];
                 byte a = bytes[(int)offset + 3];
                 if (r != g || r != b || a != 255)
-                    throw new ImpossibleStateException(
+                    throw new InvalidOperationException(
                         $"Height pixel at ({x},{y}) is not opaque greyscale RGBA: ({r},{g},{b},{a})");
 
-                samples[x, y] = (uint)(r * scale / 255);
+                samples[x, y] = (float)(r * scale) / 255;
             }
 
             return samples;
         }
 
-        // AI Generated Code Below
-
-        public static string MapToJson(Tile[][] map, UnitSpawn[] units)
+        public static string SaveMapToJson(string name, uint width, uint height, List<UnitData> units)
         {
-            MapData mapData = CreateMapData(map);
-            WriteUnits(mapData, units);
-            return JsonConvert.SerializeObject(
-                mapData,
-                new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
+            throw new NotImplementedException();
+            //return JsonConvert.SerializeObject();
         }
 
-        private static MapData CreateMapData(Tile[][] map)
+        /// <summary>
+        /// Map data for JSON serialization
+        /// </summary>
+        private class JsonMapData
         {
-            var width = (uint)map.Length;
-            var height = (uint)map[0].Length;
+            [JsonProperty("name", Required = Required.Always)]
+            public string Name { get; set; }
 
-            var tiles = new string[height];
-            for (var y = 0; y < height; y++)
-            {
-                var row = new StringBuilder();
-                for (var x = 0; x < width; x++)
-                    row.Append(TileToKey(map[x][y].Type));
+            [JsonProperty("width", Required = Required.Always)]
+            public uint Width { get; set; }
 
-                tiles[y] = row.ToString();
-            }
+            [JsonProperty("height", Required = Required.Always)]
+            public uint Height { get; set; }
 
-            return new MapData
-            {
-                Width = width,
-                Height = height,
-                Tiles = tiles
-            };
+            [JsonProperty("units", Required = Required.DisallowNull)]
+            public JsonUnitData[] Units { get; set; }
         }
 
-        private static UnitSpawn[] ReadUnits(MapData mapData)
+        /// <summary>
+        /// Unit data for JSON serialization.
+        /// </summary>
+        private class JsonUnitData
         {
-            if (mapData.BlueUnits == null && mapData.RedUnits == null && mapData.Units == null) return null;
-
-            int unitCount = (mapData.BlueUnits?.Length ?? 0) + (mapData.RedUnits?.Length ?? 0);
-            if (mapData.Units != null) unitCount += mapData.Units.Length;
-
-            var units = new UnitSpawn[unitCount];
-            var index = 0;
-
-            if (mapData.BlueUnits != null)
-                index = ReadTeamUnits(mapData.BlueUnits, UnitTeam.Blue, units, index);
-
-            if (mapData.RedUnits != null)
-                index = ReadTeamUnits(mapData.RedUnits, UnitTeam.Red, units, index);
-
-            if (mapData.Units == null) return units;
-
-            foreach (UnitData unitData in mapData.Units)
-            {
-                units[index] = new UnitSpawn(
-                    UnitTeamFromString(unitData.Team),
-                    UnitTypeFromString(unitData.Type),
-                    unitData.X,
-                    unitData.Y
-                );
-                index++;
-            }
-
-            return units;
-        }
-
-        private static int ReadTeamUnits(UnitData[] unitData, UnitTeam team, UnitSpawn[] units, int startIndex)
-        {
-            var index = startIndex;
-            for (var i = 0; i < unitData.Length; i++)
-            {
-                units[index] = new UnitSpawn(
-                    team,
-                    UnitTypeFromString(unitData[i].Type),
-                    unitData[i].X,
-                    unitData[i].Y
-                );
-                index++;
-            }
-
-            return index;
-        }
-
-        private static void WriteUnits(MapData mapData, UnitSpawn[] units)
-        {
-            if (units == null) return;
-
-            var blueUnitCount = 0;
-            var redUnitCount = 0;
-            for (var i = 0; i < units.Length; i++)
-                switch (units[i].Team)
-                {
-                    case UnitTeam.Blue:
-                        blueUnitCount++;
-                        break;
-                    case UnitTeam.Red:
-                        redUnitCount++;
-                        break;
-                    default:
-                        throw new InvalidOperationException();
-                }
-
-            mapData.BlueUnits = new UnitData[blueUnitCount];
-            mapData.RedUnits = new UnitData[redUnitCount];
-
-            var blueIndex = 0;
-            var redIndex = 0;
-            for (var i = 0; i < units.Length; i++)
-            {
-                UnitData unitData = new UnitData
-                {
-                    Type = units[i].Type.ToString(),
-                    X = units[i].X,
-                    Y = units[i].Y
-                };
-
-                switch (units[i].Team)
-                {
-                    case UnitTeam.Blue:
-                        mapData.BlueUnits[blueIndex] = unitData;
-                        blueIndex++;
-                        break;
-                    case UnitTeam.Red:
-                        mapData.RedUnits[redIndex] = unitData;
-                        redIndex++;
-                        break;
-                    default:
-                        throw new InvalidOperationException();
-                }
-            }
-        }
-
-        private static string TileToKey(TileType type)
-        {
-            return type switch
-            {
-                TileType.Paved => "P",
-                TileType.Grassland => "G",
-                TileType.Woodland => "W",
-                TileType.Building => "B",
-                _ => throw new InvalidOperationException()
-            };
-        }
-
-
-        private static TileType KeyToType(string str)
-        {
-            return str switch
-            {
-                "P" => TileType.Paved,
-                "G" => TileType.Grassland,
-                "W" => TileType.Woodland,
-                "B" => TileType.Building,
-                _ => throw new InvalidOperationException()
-            };
-        }
-
-        private static UnitTeam UnitTeamFromString(string str)
-        {
-            return str switch
-            {
-                nameof(UnitTeam.Blue) => UnitTeam.Blue,
-                nameof(UnitTeam.Red) => UnitTeam.Red,
-                _ => throw new InvalidOperationException()
-            };
-        }
-
-        private static UnitType UnitTypeFromString(string str)
-        {
-            return str switch
-            {
-                nameof(UnitType.Infantry) => UnitType.Infantry,
-                nameof(UnitType.Tank) => UnitType.Tank,
-                _ => throw new InvalidOperationException()
-            };
-        }
-
-        private class MapData
-        {
-            [JsonProperty("width")] public uint Width { get; set; }
-
-            [JsonProperty("height")] public uint Height { get; set; }
-
-            [JsonProperty("tiles")] public string[] Tiles { get; set; }
-
-            [JsonProperty("blueUnits", NullValueHandling = NullValueHandling.Ignore)]
-            public UnitData[] BlueUnits { get; set; }
-
-            [JsonProperty("redUnits", NullValueHandling = NullValueHandling.Ignore)]
-            public UnitData[] RedUnits { get; set; }
-
-            [JsonProperty("units", NullValueHandling = NullValueHandling.Ignore)]
-            public UnitData[] Units { get; set; }
-        }
-
-        private class UnitData
-        {
-            [JsonProperty("team", NullValueHandling = NullValueHandling.Ignore)]
+            [JsonProperty("team", Required = Required.Always)]
             public string Team { get; set; }
 
-            [JsonProperty("type")] public string Type { get; set; }
+            [JsonProperty("type", Required = Required.Always)]
+            public string Type { get; set; }
 
-            [JsonProperty("x")] public uint X { get; set; }
+            [JsonProperty("x", Required = Required.Always)]
+            public uint X { get; set; }
 
-            [JsonProperty("y")] public uint Y { get; set; }
+            [JsonProperty("y", Required = Required.Always)]
+            public uint Y { get; set; }
         }
 
         /// <summary>
         ///
         /// </summary>
-        public readonly struct UnitSpawn
+        public readonly struct UnitData
         {
             public readonly UnitTeam Team;
             public readonly UnitType Type;
@@ -295,13 +212,13 @@ namespace GameLogic
             public readonly uint Y;
 
             /// <summary>
-            ///     Constructor for <see cref="UnitSpawn"/>.
+            ///     Constructor for <see cref="UnitData"/>.
             /// </summary>
             /// <param name="team"></param>
             /// <param name="type"></param>
             /// <param name="x"></param>
             /// <param name="y"></param>
-            public UnitSpawn(UnitTeam team, UnitType type, uint x, uint y)
+            public UnitData(UnitTeam team, UnitType type, uint x, uint y)
             {
                 Team = team;
                 Type = type;

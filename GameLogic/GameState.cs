@@ -49,32 +49,26 @@ namespace GameLogic
         /// Constructor for GameState.
         /// </summary>
         /// <param name="eventBus"></param>
-        /// <param name="mapJsonString"></param>
-        public GameState(EventBus eventBus, string mapJsonString)
+        /// <param name="terrainMap"></param>
+        /// <param name="heightMap"></param>
+        /// <param name="units"></param>
+        public GameState(EventBus eventBus, TileType[,] terrainMap, float[,] heightMap, MapLoader.UnitData[] units)
         {
+            if (terrainMap.GetLength(0) != heightMap.GetLength(0) + 1 ||
+                terrainMap.GetLength(1) != heightMap.GetLength(1) + 1)
+                throw new ImpossibleStateException(
+                    $"Terrain map size ({terrainMap.GetLength(0)},{terrainMap.GetLength(1)}) " +
+                    $"does not align with height map size ({heightMap.GetLength(0)},{heightMap.GetLength(1)}).");
+
             EventBus = eventBus;
-            TurnStateMachine = new TurnStateMachine(EventBus);
             EventBus.Subscribe<UnitAttackedEvent>(HandleUnitDamaged);
             EventBus.Subscribe<TurnStateChangeEvent>(HandleTurnStateChange);
+            TurnStateMachine = new TurnStateMachine(EventBus);
+            MapX = (uint)terrainMap.GetLength(0);
+            MapY = (uint)terrainMap.GetLength(1);
 
-            (
-                Tile[][] tiles,
-                uint mapX,
-                uint mapY,
-                MapLoader.UnitSpawn[] units
-            ) = MapLoader.LoadFromJson(mapJsonString);
-            Map = tiles;
-            MapX = mapX;
-            MapY = mapY;
-            if (units is null) throw new ArgumentNullException(nameof(units));
-            foreach (MapLoader.UnitSpawn unit in units)
+            foreach (MapLoader.UnitData unit in units)
                 CreateUnit(unit.Team, unit.Type, unit.X, unit.Y);
-
-            // for (uint i = 0; i < 3; i++) CreateUnit(UnitTeam.Blue, UnitType.Infantry, i + 12, 10);
-            // for (uint i = 0; i < 2; i++) CreateUnit(UnitTeam.Blue, UnitType.Tank, i + 10, 9);
-            // for (uint i = 0; i < 3; i++) CreateUnit(UnitTeam.Red, UnitType.Tank, i + 12, 15);
-            // for (uint i = 0; i < 1; i++) CreateUnit(UnitTeam.Red, UnitType.Infantry, i + 16, 16);
-            // for (uint i = 0; i < 1; i++) CreateUnit(UnitTeam.Red, UnitType.Infantry, i + 16, 22);
         }
 
         /// <summary>
@@ -86,9 +80,7 @@ namespace GameLogic
             EventBus.Unsubscribe<TurnStateChangeEvent>(HandleTurnStateChange);
         }
 
-        ///////////////////
-        // STATE QUERIES //
-        ///////////////////
+        #region STATE QUERIES
 
         /// <summary>
         /// 
@@ -108,6 +100,7 @@ namespace GameLogic
             unit = null;
             return false;
         }
+
 
         /// <summary>
         ///
@@ -321,9 +314,9 @@ namespace GameLogic
             }
         }
 
-        ///////////////////
-        // STATE DRIVERS //
-        ///////////////////
+        #endregion STATE QUERIES
+
+        #region STATE DRIVERS
 
         /// <summary>
         ///
@@ -441,15 +434,15 @@ namespace GameLogic
                     $"Cannot create unit {_unitIdCounter}," +
                     " this unit already exists.");
 
-            var newUnit = new Unit(_unitIdCounter, team, type, EventBus);
+            var newUnit = new Unit(_unitIdCounter, team, type);
             _units.Add(newUnit);
             Map[xCoord][yCoord].UnitId = _unitIdCounter;
             ++_unitIdCounter;
         }
 
-        ////////////////////
-        // EVENT HANDLING //
-        ////////////////////
+        #endregion STATE DRIVERS
+
+        #region EVENT HANDLING
 
         /// <summary>
         ///
@@ -509,5 +502,8 @@ namespace GameLogic
                     break;
             }
         }
+
+        #endregion EVENT HANDLING
+
     }
 }

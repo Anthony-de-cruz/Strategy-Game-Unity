@@ -11,22 +11,36 @@ internal static class Program
         var reader =
             new StreamReader(
                 File.OpenRead(
-                    @"C:\Users\Anthony\Projects\Strategy-Game-Unity\Unity2\Assets\StreamingAssets\Maps\map0.json"));
+                    @"C:\Users\Anthony\Projects\Strategy-Game-Unity\GameLogicTests\TestMaps\map0.json"));
         string jsonString = reader.ReadToEnd();
         reader.Close();
 
-        GameState gameState = new(new EventBus(), jsonString);
-        Ai ai = new(gameState);
+        (
+            string mapName,
+            uint mapX,
+            uint mapY,
+            MapLoader.UnitData[] units
+        ) = MapLoader.LoadMetaFromJson(jsonString);
 
-        (uint, uint)[] coords = gameState.GetMoveableCoords(2, 2, UnitType.Infantry);
-        foreach ((uint, uint) coord in coords)
-            Console.WriteLine(coord);
-
-        var heightMapRaw = new Span<byte>(new byte[(50 * 50) * 4]);
+        var heightMapRaw = new Span<byte>(new byte[mapX * mapY * 4]);
         File.OpenRead(@"C:\Users\Anthony\Projects\Strategy-Game-Unity\GameLogicTests\TestMaps\map0height.raw")
             .ReadExactly(heightMapRaw);
         reader.Close();
 
-        uint[,] heightMapValues = MapLoader.LoadHeightMapFromRaw(heightMapRaw, 50, 50, 10);
+        var terrainMapRaw = new Span<byte>(new byte[mapX * mapY * 4]);
+        File.OpenRead(@"C:\Users\Anthony\Projects\Strategy-Game-Unity\GameLogicTests\TestMaps\map0terrain.raw")
+            .ReadExactly(terrainMapRaw);
+        reader.Close();
+
+        TileType[,] terrainMap = MapLoader.LoadTerrainMapFromRaw(terrainMapRaw, mapX, mapY);
+        float[,] heightMap = MapLoader.LoadHeightMapFromRaw(heightMapRaw, mapX, mapY, 10);
+
+        GameState gameState = new(new EventBus(), terrainMap, heightMap, units);
+        Ai ai = new(gameState);
+
+        // (uint, uint)[] coords = gameState.GetMoveableCoords(2, 2, UnitType.Infantry);
+        // foreach ((uint, uint) coord in coords)
+        //     Console.WriteLine(coord);
+
     }
 }

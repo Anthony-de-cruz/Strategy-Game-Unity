@@ -1,0 +1,20 @@
+{
+  "name": "map0",
+  "height": 50,
+  "units": [
+    { "team": "Blue", "type": "Infantry", "x": 13, "y": 4 },
+    { "team": "Blue", "type": "Infantry", "x": 15, "y": 5 },
+    { "team": "Blue", "type": "Infantry", "x": 20, "y": 5 },
+    { "team": "Blue", "type": "Tank", "x": 3, "y": 3 },
+    { "team": "Blue", "type": "Tank", "x": 9, "y": 1 }
+  ],
+  "redUnits": [
+    { "team": "Blue", "type": "Infantry", "x": 0, "y": 20 },
+    { "team": "Blue", "type": "Infantry", "x": 11, "y": 15 },
+    { "team": "Blue", "type": "Infantry", "x": 23, "y": 14 },
+    { "team": "Blue", "type": "Tank", "x": 13, "y": 16 },
+    { "team": "Blue", "type": "Tank", "x": 14, "y": 20 },
+    { "team": "Blue", "type": "Tank", "x": 16, "y": 21 }
+  ],
+  "width": 50
+}
