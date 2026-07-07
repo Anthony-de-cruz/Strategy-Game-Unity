@@ -1,5 +1,4 @@
-﻿using Simulation;
-using Simulation.Events;
+﻿using Simulation.Events;
 
 namespace Simulation.Cli;
 
@@ -32,7 +31,7 @@ internal static class Program
             .ReadExactly(terrainMapRaw);
         reader.Close();
 
-        TileType[,] terrainMap = MapLoader.LoadTerrainMapFromRaw(terrainMapRaw, mapX, mapY);
+        Tile[,] terrainMap = MapLoader.LoadTerrainMapFromRaw(terrainMapRaw, mapX, mapY);
         float[,] heightMap = MapLoader.LoadHeightMapFromRaw(heightMapRaw, mapX, mapY, 10);
 
         SimState simState = new(new EventBus(), terrainMap, heightMap, units);

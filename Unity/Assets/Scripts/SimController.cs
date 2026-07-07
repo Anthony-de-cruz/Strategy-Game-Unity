@@ -164,8 +164,8 @@ namespace Assets.Scripts
         public bool TrySelectUnitAt(uint xCoord, uint yCoord)
         {
             if (TurnState != TurnState.BlueTurn) return false;
-            if (xCoord >= _simState.MapX || yCoord >= _simState.MapY) return false;
-            uint id = _simState.Map[xCoord][yCoord].UnitId;
+            if (xCoord >= _simState.MapWidth || yCoord >= _simState.MapHeight) return false;
+            uint id = _simState.TerrainMap[xCoord][yCoord].UnitId;
 
             // Deselect.
             if (id == 0)
@@ -196,7 +196,7 @@ namespace Assets.Scripts
         public bool TrySelectUnitAction(uint xCoord, uint yCoord)
         {
             if (SelectedId == 0) return false;
-            return _simState.Map[xCoord][yCoord].UnitId != 0
+            return _simState.TerrainMap[xCoord][yCoord].UnitId != 0
                 ? TryAttackWithSelectedUnit(xCoord, yCoord)
                 : TryMoveSelectedUnit(xCoord, yCoord);
         }
@@ -209,7 +209,7 @@ namespace Assets.Scripts
         private bool TryMoveSelectedUnit(uint xCoord, uint yCoord)
         {
             if (SelectedId == 0) return false;
-            if (_simState.Map[xCoord][yCoord].UnitId != 0) return false;
+            if (_simState.TerrainMap[xCoord][yCoord].UnitId != 0) return false;
             if (!TryGetUnitById(SelectedId, out UnitView unit)) throw new InvalidConfigException();
             // Dijkstra is slow, in future, an exact path should be passed in which can be checked.
             if (Array.IndexOf(GetMoveableCoords(unit), (xCoord, yCoord)) == -1) return false;
@@ -268,9 +268,9 @@ namespace Assets.Scripts
         private bool TryAttackWithSelectedUnit(uint xCoord, uint yCoord)
         {
             if (SelectedId == 0) return false;
-            if (_simState.Map[xCoord][yCoord].UnitId == 0) return false;
+            if (_simState.TerrainMap[xCoord][yCoord].UnitId == 0) return false;
             if (!TryGetUnitById(SelectedId, out UnitView unit) ||
-                !TryGetUnitById(_simState.Map[xCoord][yCoord].UnitId, out UnitView target))
+                !TryGetUnitById(_simState.TerrainMap[xCoord][yCoord].UnitId, out UnitView target))
                 throw new InvalidConfigException();
 
             bool isAttackable = false;
@@ -357,17 +357,17 @@ namespace Assets.Scripts
         /// <summary>
         ///     Get the map layout.
         /// </summary>
-        public Tile[][] Map => _simState.Map;
+        public TileExt[][] Map => _simState.TerrainMap;
 
         /// <summary>
         ///     Get map width.
         /// </summary>
-        public uint MapX => _simState.MapX;
+        public uint MapX => _simState.MapWidth;
 
         /// <summary>
         ///     Get map height.
         /// </summary>
-        public uint MapY => _simState.MapY;
+        public uint MapY => _simState.MapHeight;
 
         /// <summary>
         ///     Get turn state.

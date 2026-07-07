@@ -13,9 +13,9 @@ namespace Assets.Scripts
         [SerializeField] private GameObject prefabBuilding;
         [SerializeField] private GameObject prefabTrees;
 
-        private readonly TileType[] _tileTypes =
-            Enum.GetValues(typeof(TileType))
-                .Cast<TileType>()
+        private readonly Tile[] _tileTypes =
+            Enum.GetValues(typeof(Tile))
+                .Cast<Tile>()
                 .ToArray();
 
         private MeshFilter _terrainMeshFilter;
@@ -27,7 +27,7 @@ namespace Assets.Scripts
         [Serializable]
         public struct TileMaterial
         {
-            public TileType type;
+            public Tile type;
             public Material material;
         }
 
@@ -37,9 +37,9 @@ namespace Assets.Scripts
         private struct TerrainTile
         {
             public readonly float Height;
-            public readonly TileType Type;
+            public readonly Tile Type;
 
-            public TerrainTile(float height, TileType type)
+            public TerrainTile(float height, Tile type)
             {
                 Height = height;
                 Type = type;
@@ -84,94 +84,94 @@ namespace Assets.Scripts
             var map = new TerrainTile[,]
             {
                 {
-                    new(0, TileType.Grassland),
-                    new(0, TileType.Grassland),
-                    new(1, TileType.Woodland),
-                    new(1, TileType.Woodland),
-                    new(1, TileType.Paved),
-                    new(1, TileType.Paved),
-                    new(1, TileType.Grassland),
-                    new(0, TileType.Grassland)
+                    new(0, Tile.Grassland),
+                    new(0, Tile.Grassland),
+                    new(1, Tile.Woodland),
+                    new(1, Tile.Woodland),
+                    new(1, Tile.Paved),
+                    new(1, Tile.Paved),
+                    new(1, Tile.Grassland),
+                    new(0, Tile.Grassland)
                 },
                 {
-                    new(0, TileType.Grassland),
-                    new(1, TileType.Grassland),
-                    new(2, TileType.Woodland),
-                    new(5, TileType.Woodland),
-                    new(5, TileType.Building),
-                    new(3, TileType.Building),
-                    new(1, TileType.Paved),
-                    new(0, TileType.Grassland)
+                    new(0, Tile.Grassland),
+                    new(1, Tile.Grassland),
+                    new(2, Tile.Woodland),
+                    new(5, Tile.Woodland),
+                    new(5, Tile.Building),
+                    new(3, Tile.Building),
+                    new(1, Tile.Paved),
+                    new(0, Tile.Grassland)
                 },
                 {
-                    new(0, TileType.Grassland),
-                    new(1, TileType.Grassland),
-                    new(1, TileType.Woodland),
-                    new(5, TileType.Woodland),
-                    new(5, TileType.Paved),
-                    new(2, TileType.Paved),
-                    new(1, TileType.Paved),
-                    new(0, TileType.Grassland)
+                    new(0, Tile.Grassland),
+                    new(1, Tile.Grassland),
+                    new(1, Tile.Woodland),
+                    new(5, Tile.Woodland),
+                    new(5, Tile.Paved),
+                    new(2, Tile.Paved),
+                    new(1, Tile.Paved),
+                    new(0, Tile.Grassland)
                 },
                 {
-                    new(1, TileType.Grassland),
-                    new(1, TileType.Grassland),
-                    new(1, TileType.Grassland),
-                    new(1, TileType.Paved),
-                    new(1, TileType.Paved),
-                    new(1, TileType.Paved),
-                    new(1, TileType.Paved),
-                    new(1, TileType.Grassland)
+                    new(1, Tile.Grassland),
+                    new(1, Tile.Grassland),
+                    new(1, Tile.Grassland),
+                    new(1, Tile.Paved),
+                    new(1, Tile.Paved),
+                    new(1, Tile.Paved),
+                    new(1, Tile.Paved),
+                    new(1, Tile.Grassland)
                 },
                 {
-                    new(0, TileType.Grassland),
-                    new(1, TileType.Grassland),
-                    new(1, TileType.Woodland),
-                    new(1, TileType.Woodland),
-                    new(1, TileType.Paved),
-                    new(3, TileType.Building),
-                    new(1, TileType.Paved),
-                    new(0, TileType.Grassland)
+                    new(0, Tile.Grassland),
+                    new(1, Tile.Grassland),
+                    new(1, Tile.Woodland),
+                    new(1, Tile.Woodland),
+                    new(1, Tile.Paved),
+                    new(3, Tile.Building),
+                    new(1, Tile.Paved),
+                    new(0, Tile.Grassland)
                 },
                 {
-                    new(0, TileType.Grassland),
-                    new(0, TileType.Grassland),
-                    new(1, TileType.Woodland),
-                    new(1, TileType.Grassland),
-                    new(1, TileType.Grassland),
-                    new(1, TileType.Paved),
-                    new(0, TileType.Grassland),
-                    new(0, TileType.Grassland)
+                    new(0, Tile.Grassland),
+                    new(0, Tile.Grassland),
+                    new(1, Tile.Woodland),
+                    new(1, Tile.Grassland),
+                    new(1, Tile.Grassland),
+                    new(1, Tile.Paved),
+                    new(0, Tile.Grassland),
+                    new(0, Tile.Grassland)
                 },
                 {
-                    new(0, TileType.Grassland),
-                    new(0, TileType.Grassland),
-                    new(1, TileType.Woodland),
-                    new(1, TileType.Grassland),
-                    new(1, TileType.Grassland),
-                    new(1, TileType.Grassland),
-                    new(0, TileType.Grassland),
-                    new(0, TileType.Grassland)
+                    new(0, Tile.Grassland),
+                    new(0, Tile.Grassland),
+                    new(1, Tile.Woodland),
+                    new(1, Tile.Grassland),
+                    new(1, Tile.Grassland),
+                    new(1, Tile.Grassland),
+                    new(0, Tile.Grassland),
+                    new(0, Tile.Grassland)
                 },
                 {
-                    new(0, TileType.Grassland),
-                    new(1, TileType.Paved),
-                    new(0, TileType.Grassland),
-                    new(0, TileType.Grassland),
-                    new(1, TileType.Grassland),
-                    new(0, TileType.Grassland),
-                    new(0, TileType.Grassland),
-                    new(0, TileType.Grassland)
+                    new(0, Tile.Grassland),
+                    new(1, Tile.Paved),
+                    new(0, Tile.Grassland),
+                    new(0, Tile.Grassland),
+                    new(1, Tile.Grassland),
+                    new(0, Tile.Grassland),
+                    new(0, Tile.Grassland),
+                    new(0, Tile.Grassland)
                 },
                 {
-                    new(0, TileType.Grassland),
-                    new(0, TileType.Grassland),
-                    new(0, TileType.Grassland),
-                    new(0, TileType.Grassland),
-                    new(0, TileType.Grassland),
-                    new(0, TileType.Grassland),
-                    new(0, TileType.Grassland),
-                    new(0, TileType.Grassland)
+                    new(0, Tile.Grassland),
+                    new(0, Tile.Grassland),
+                    new(0, Tile.Grassland),
+                    new(0, Tile.Grassland),
+                    new(0, Tile.Grassland),
+                    new(0, Tile.Grassland),
+                    new(0, Tile.Grassland),
+                    new(0, Tile.Grassland)
                 },
             };
 
@@ -272,9 +272,9 @@ namespace Assets.Scripts
                 for (var x = 0; x < width; x++)
                 {
                     // Instantiate prefab.
-                    if (heightMap[x, y].Type is TileType.Grassland or TileType.Paved)
+                    if (heightMap[x, y].Type is Tile.Grassland or Tile.Paved)
                         continue;
-                    GameObject prefab = heightMap[x, y].Type is TileType.Woodland
+                    GameObject prefab = heightMap[x, y].Type is Tile.Woodland
                         ? prefabTrees
                         : prefabBuilding;
                     Vector3 position = new(

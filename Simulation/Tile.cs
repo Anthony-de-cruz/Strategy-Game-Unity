@@ -3,7 +3,7 @@
     /// <summary>
     /// Types of tiles on the map.
     /// </summary>
-    public enum TileType
+    public enum Tile
     {
         Paved,
         Grassland,
@@ -12,44 +12,23 @@
     }
 
     /// <summary>
-    /// Represents a single tile on the map.
+    /// Extension for <see cref="Tile"/>.
     /// </summary>
-    public class Tile
+    public static class TileExt
     {
-        /// <summary>
-        /// Type of this tile.
-        /// </summary>
-        public TileType Type { get; }
-
-        /// <summary>
-        /// ID of the unit on this tile (if any).
-        /// </summary>
-        public uint UnitId { get; set; }
-
-        /// <summary>
-        /// Constructor for <see cref="Tile"/>.
-        /// </summary>
-        /// <param name="type">Tile type.</param>
-        /// <param name="unitId">ID of the unit on this tile.</param>
-        public Tile(TileType type, uint unitId)
-        {
-            Type = type;
-            UnitId = unitId;
-        }
-
         /// <summary>
         ///
         /// </summary>
-        /// <param name="tileType"></param>
+        /// <param name="tile"></param>
         /// <returns></returns>
-        public static uint GetObstructionByType(TileType tileType)
+        public static uint GetObstructionByType(Tile tile)
         {
-            return tileType switch
+            return tile switch
             {
-                TileType.Paved => 0,
-                TileType.Grassland => 0,
-                TileType.Woodland => 3,
-                TileType.Building => 99,
+                Tile.Paved => 0,
+                Tile.Grassland => 0,
+                Tile.Woodland => 3,
+                Tile.Building => 99,
                 _ => throw new ImpossibleStateException()
             };
         }
@@ -57,27 +36,27 @@
         /// <summary>
         ///
         /// </summary>
-        /// <param name="tileType"></param>
+        /// <param name="tile"></param>
         /// <param name="unitType"></param>
         /// <returns></returns>
-        public static uint GetMovementCostByType(TileType tileType, UnitType unitType)
+        public static uint GetMovementCostByType(Tile tile, UnitType unitType)
         {
             return unitType switch
             {
-                UnitType.Infantry => tileType switch
+                UnitType.Infantry => tile switch
                 {
-                    TileType.Paved => 2,
-                    TileType.Grassland => 2,
-                    TileType.Woodland => 2,
-                    TileType.Building => 2,
+                    Tile.Paved => 2,
+                    Tile.Grassland => 2,
+                    Tile.Woodland => 2,
+                    Tile.Building => 2,
                     _ => throw new ImpossibleStateException()
                 },
-                UnitType.Tank => tileType switch
+                UnitType.Tank => tile switch
                 {
-                    TileType.Paved => 1,
-                    TileType.Grassland => 2,
-                    TileType.Woodland => 4,
-                    TileType.Building => 100,
+                    Tile.Paved => 1,
+                    Tile.Grassland => 2,
+                    Tile.Woodland => 4,
+                    Tile.Building => 100,
                     _ => throw new ImpossibleStateException()
                 },
                 _ => throw new ImpossibleStateException()

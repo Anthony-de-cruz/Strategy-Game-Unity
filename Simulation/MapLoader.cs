@@ -79,13 +79,13 @@ namespace Simulation
         /// <param name="height">Map height.</param>
         /// <returns>[x,y] 2d array terrain map.</returns>
         /// <exception cref="InvalidOperationException">Length of <paramref name="bytes"/> does not match expected size or a pixel is not recognized value.</exception>
-        public static TileType[,] LoadTerrainMapFromRaw(ReadOnlySpan<byte> bytes, uint width, uint height)
+        public static Tile[,] LoadTerrainMapFromRaw(ReadOnlySpan<byte> bytes, uint width, uint height)
         {
             uint expectedBytes = width * height * 4;
             if (bytes.Length != expectedBytes)
                 throw new InvalidOperationException($"Expected {expectedBytes} bytes, got {bytes.Length}");
 
-            var samples = new TileType[width, height];
+            var samples = new Tile[width, height];
 
             for (uint y = 0; y < height; y++)
             for (uint x = 0; x < width; x++)
@@ -100,13 +100,13 @@ namespace Simulation
                     throw new InvalidOperationException(
                         $"Terrain pixel at ({x},{y}) is not opaque RGBA: ({r},{g},{b},{a})");
                 if (r == 64 && g == 64 && b == 32)
-                    samples[x, y] = TileType.Paved;
+                    samples[x, y] = Tile.Paved;
                 else if (r == 255 && g == 160 && b == 255)
-                    samples[x, y] = TileType.Building;
+                    samples[x, y] = Tile.Building;
                 else if (r == 0 && g == 245 && b == 0)
-                    samples[x, y] = TileType.Grassland;
+                    samples[x, y] = Tile.Grassland;
                 else if (r == 0 && g == 165 && b == 0)
-                    samples[x, y] = TileType.Woodland;
+                    samples[x, y] = Tile.Woodland;
                 else throw new InvalidOperationException($"Invalid terrain type at ({x},{y}): ({r},{g},{b},{a})");
             }
 

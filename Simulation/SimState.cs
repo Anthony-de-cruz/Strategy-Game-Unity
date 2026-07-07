@@ -13,17 +13,30 @@ namespace Simulation
         /// <summary>
         /// Width of the map.
         /// </summary>
-        public uint MapX { get; }
+        public uint MapWidth { get; }
 
         /// <summary>
         /// Height of the map.
         /// </summary>
-        public uint MapY { get; }
+        public uint MapHeight { get; }
 
         /// <summary>
-        /// 2D array of tiles representing the map.
+        /// 2D array of tiles representing the map terrain.
+        /// Dimensions should be equal to <see cref="MapWidth"/>,<see cref="MapHeight"/>.
         /// </summary>
-        public Tile[][] Map { get; }
+        public Tile[,] TerrainMap { get; }
+
+        /// <summary>
+        /// 2D array of vertices representing the map height.
+        /// Dimensions should be equal to <see cref="MapWidth"/> + 1,<see cref="MapHeight"/> + 1.
+        /// </summary>
+        public float[,] HeightMap { get; }
+
+        /// <summary>
+        /// 2D array of unit IDs representing the placement of units.
+        /// Dimensions should be equal to <see cref="MapWidth"/>,<see cref="MapHeight"/>.
+        /// </summary>
+        public uint[,] UnitMap { get; }
 
         /// <summary>
         /// Turn state machine.
@@ -33,7 +46,7 @@ namespace Simulation
         /// <summary>
         /// 
         /// </summary>
-        public EventBus EventBus { get; }
+        private readonly EventBus _eventBus;
 
         /// <summary>
         /// List of units in the game.
@@ -41,7 +54,7 @@ namespace Simulation
         private readonly List<Unit> _units = new List<Unit>();
 
         /// <summary>
-        ///     Current unit counter.
+        /// Current unit counter.
         /// </summary>
         private uint _unitIdCounter = 1;
 
@@ -52,7 +65,7 @@ namespace Simulation
         /// <param name="terrainMap"></param>
         /// <param name="heightMap"></param>
         /// <param name="units"></param>
-        public SimState(EventBus eventBus, TileType[,] terrainMap, float[,] heightMap, MapLoader.UnitData[] units)
+        public SimState(EventBus eventBus, Tile[,] terrainMap, float[,] heightMap, MapLoader.UnitData[] units)
         {
             if (terrainMap.GetLength(0) != heightMap.GetLength(0) + 1 ||
                 terrainMap.GetLength(1) != heightMap.GetLength(1) + 1)
@@ -60,12 +73,12 @@ namespace Simulation
                     $"Terrain map size ({terrainMap.GetLength(0)},{terrainMap.GetLength(1)}) " +
                     $"does not align with height map size ({heightMap.GetLength(0)},{heightMap.GetLength(1)}).");
 
-            EventBus = eventBus;
-            EventBus.Subscribe<UnitAttackedEvent>(HandleUnitDamaged);
-            EventBus.Subscribe<TurnStateChangeEvent>(HandleTurnStateChange);
-            TurnStateMachine = new TurnStateMachine(EventBus);
-            MapX = (uint)terrainMap.GetLength(0);
-            MapY = (uint)terrainMap.GetLength(1);
+            _eventBus = eventBus;
+            _eventBus.Subscribe<UnitAttackedEvent>(HandleUnitDamaged);
+            _eventBus.Subscribe<TurnStateChangeEvent>(HandleTurnStateChange);
+            TurnStateMachine = new TurnStateMachine(_eventBus);
+            MapWidth = (uint)terrainMap.GetLength(0);
+            MapHeight = (uint)terrainMap.GetLength(1);
 
             foreach (MapLoader.UnitData unit in units)
                 CreateUnit(unit.Team, unit.Type, unit.X, unit.Y);
@@ -76,8 +89,8 @@ namespace Simulation
         /// </summary>
         public void Dispose()
         {
-            EventBus.Unsubscribe<UnitAttackedEvent>(HandleUnitDamaged);
-            EventBus.Unsubscribe<TurnStateChangeEvent>(HandleTurnStateChange);
+            _eventBus.Unsubscribe<UnitAttackedEvent>(HandleUnitDamaged);
+            _eventBus.Unsubscribe<TurnStateChangeEvent>(HandleTurnStateChange);
         }
 
         #region STATE QUERIES
@@ -110,9 +123,9 @@ namespace Simulation
         /// <returns></returns>
         public bool TryGetUnitCoords(uint unitId, out (uint X, uint Y) coords)
         {
-            for (uint x = 0; x < MapX; x++)
-            for (uint y = 0; y < MapY; y++)
-                if (Map[x][y].UnitId == unitId)
+            for (uint x = 0; x < MapWidth; x++)
+            for (uint y = 0; y < MapHeight; y++)
+                if (UnitMap[x,y] == unitId)
                 {
                     coords = (x, y);
                     return true;
@@ -140,9 +153,9 @@ namespace Simulation
         {
             var coords = new List<(uint, uint)>();
 
-            if (xCoord >= MapX || yCoord >= MapY)
+            if (xCoord >= MapWidth || yCoord >= MapHeight)
                 throw new ArgumentOutOfRangeException(
-                    $"Coords ({xCoord},{yCoord}) must be within map bounds ({MapX},{MapY}).");
+                    $"Coords ({xCoord},{yCoord}) must be within map bounds ({MapWidth},{MapHeight}).");
 
             uint movement = Unit.GetMovementByType(unitType);
             var lowestCosts = new Dictionary<(uint, uint), uint> { [(xCoord, yCoord)] = 0 };
@@ -160,11 +173,10 @@ namespace Simulation
 
                 foreach ((uint X, uint Y) neighbour in GetAdjacentCoords(current.X, current.Y))
                 {
-                    Tile tile = Map[neighbour.X][neighbour.Y];
-                    if (tile.UnitId != 0)
+                    if (UnitMap[neighbour.X,neighbour.Y] != 0)
                         continue;
 
-                    uint newCost = currentCost + Tile.GetMovementCostByType(tile.Type, unitType);
+                    uint newCost = currentCost + TileExt.GetMovementCostByType(TerrainMap[neighbour.X,neighbour.Y], unitType);
                     if (newCost > movement)
                         continue;
 
@@ -193,11 +205,11 @@ namespace Simulation
         {
             if (xCoord > 0)
                 yield return (xCoord - 1, yCoord);
-            if (xCoord + 1 < MapX)
+            if (xCoord + 1 < MapWidth)
                 yield return (xCoord + 1, yCoord);
             if (yCoord > 0)
                 yield return (xCoord, yCoord - 1);
-            if (yCoord + 1 < MapY)
+            if (yCoord + 1 < MapHeight)
                 yield return (xCoord, yCoord + 1);
         }
 
@@ -211,9 +223,9 @@ namespace Simulation
         /// <returns></returns>
         public Unit[] GetAttackableUnitsFromCoord(uint xCoord, uint yCoord, UnitType unitType, UnitTeam unitTeam)
         {
-            if (xCoord >= MapX || yCoord >= MapY)
+            if (xCoord >= MapWidth || yCoord >= MapHeight)
                 throw new ArgumentOutOfRangeException(
-                    $"Coords ({xCoord},{yCoord}) must be within map bounds ({MapX},{MapY}).");
+                    $"Coords ({xCoord},{yCoord}) must be within map bounds ({MapWidth},{MapHeight}).");
 
             var units = new List<Unit>();
             uint range = Unit.GetRangeByType(unitType);
@@ -264,7 +276,7 @@ namespace Simulation
                 if (coord == (xStart, yStart) || coord == (xEnd, yEnd))
                     continue;
 
-                obstruction += Tile.GetObstructionByType(Map[coord.X][coord.Y].Type);
+                obstruction += TileExt.GetObstructionByType(TerrainMap[coord.X][coord.Y].Type);
                 if (obstruction > obstructionLimit)
                     return false;
             }
@@ -341,22 +353,22 @@ namespace Simulation
                     throw new ImpossibleStateException();
             }
 
-            if (xCoord >= MapX || yCoord >= MapY)
+            if (xCoord >= MapWidth || yCoord >= MapHeight)
                 throw new ArgumentOutOfRangeException(
-                    $"Coords ({xCoord},{yCoord}) must be within map bounds ({MapX},{MapY}).");
+                    $"Coords ({xCoord},{yCoord}) must be within map bounds ({MapWidth},{MapHeight}).");
 
             if (unit.Actions <= 0 ||
-                Map[xCoord][yCoord].UnitId != 0)
+                TerrainMap[xCoord][yCoord].UnitId != 0)
                 throw new InvalidOperationException();
 
             // Just assume that the move is actually possible, running full Dijkstra would be far too slow.
             // In future, an exact path should be passed in which can be checked.
 
             TryGetUnitCoords(unit.Id, out (uint X, uint Y) oldCoords);
-            Map[oldCoords.X][oldCoords.Y].UnitId = 0;
-            Map[xCoord][yCoord].UnitId = unit.Id;
+            TerrainMap[oldCoords.X][oldCoords.Y].UnitId = 0;
+            TerrainMap[xCoord][yCoord].UnitId = unit.Id;
             unit.Actions -= 1;
-            EventBus.Publish(new UnitMovedEvent(unit.Id, oldCoords, (xCoord, yCoord)));
+            _eventBus.Publish(new UnitMovedEvent(unit.Id, oldCoords, (xCoord, yCoord)));
         }
 
         /// <summary>
@@ -402,7 +414,7 @@ namespace Simulation
             target.Strength = target.Strength > Unit.GetDamageByType(attacker.Type, target.Type)
                 ? target.Strength - Unit.GetDamageByType(attacker.Type, target.Type)
                 : 0;
-            EventBus.Publish(new UnitAttackedEvent(attacker.Id, target.Id, oldStrength, target.Strength));
+            _eventBus.Publish(new UnitAttackedEvent(attacker.Id, target.Id, oldStrength, target.Strength));
         }
 
         /// <summary>
@@ -416,18 +428,18 @@ namespace Simulation
         /// <exception cref="InvalidOperationException">Coordinate already occupied.</exception>
         private void CreateUnit(UnitTeam team, UnitType type, uint xCoord, uint yCoord)
         {
-            if (xCoord >= MapX)
+            if (xCoord >= MapWidth)
                 throw new ArgumentOutOfRangeException(
-                    $"xCoord ({xCoord}) must be between 0 and {MapX}");
+                    $"xCoord ({xCoord}) must be between 0 and {MapWidth}");
 
-            if (yCoord >= MapY)
+            if (yCoord >= MapHeight)
                 throw new ArgumentOutOfRangeException(
-                    $"yCoord ({yCoord}) must be between 0 and {MapY}");
+                    $"yCoord ({yCoord}) must be between 0 and {MapHeight}");
 
-            if (Map[xCoord][yCoord].UnitId != 0)
+            if (UnitMap[xCoord,yCoord] != 0)
                 throw new InvalidOperationException(
                     $"Cannot create unit type {type} @ {xCoord},{yCoord}," +
-                    $" tile already occupied by unit {Map[xCoord][yCoord].UnitId}.");
+                    $" tile already occupied by unit {UnitMap[xCoord,yCoord]}.");
 
             if (TryGetUnit(_unitIdCounter, out _))
                 throw new ImpossibleStateException(
@@ -436,7 +448,7 @@ namespace Simulation
 
             var newUnit = new Unit(_unitIdCounter, team, type);
             _units.Add(newUnit);
-            Map[xCoord][yCoord].UnitId = _unitIdCounter;
+            TerrainMap[xCoord][yCoord].UnitId = _unitIdCounter;
             ++_unitIdCounter;
         }
 
@@ -453,7 +465,7 @@ namespace Simulation
             if (e.NewStrength != 0) return;
             if (!TryGetUnit(e.TargetId, out Unit unit)) throw new ImpossibleStateException();
             TryGetUnitCoords(e.TargetId, out (uint X, uint Y) coords);
-            Map[coords.X][coords.Y].UnitId = 0;
+            UnitMap[coords.X,coords.Y] = 0;
             _units.Remove(unit);
 
             if (GetUnitsByTeam(unit.Team).Length != 0) return;
@@ -504,6 +516,5 @@ namespace Simulation
         }
 
         #endregion EVENT HANDLING
-
     }
 }

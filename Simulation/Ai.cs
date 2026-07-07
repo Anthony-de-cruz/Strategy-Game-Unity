@@ -12,11 +12,18 @@ namespace Simulation
         /// <summary>
         ///
         /// </summary>
+        private readonly EventBus _eventBus;
+
+        /// <summary>
+        ///
+        /// </summary>
         /// <param name="simState"></param>
-        public Ai(SimState simState)
+        /// <param name="eventBus"></param>
+        public Ai(SimState simState, EventBus eventBus)
         {
             _simState = simState;
-            _simState.EventBus.Subscribe<TurnStateChangeEvent>(HandleTurnStateChange);
+            _eventBus = eventBus;
+            _eventBus.Subscribe<TurnStateChangeEvent>(HandleTurnStateChange);
         }
 
         /// <summary>

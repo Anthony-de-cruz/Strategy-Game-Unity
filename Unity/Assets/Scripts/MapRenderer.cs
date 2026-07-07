@@ -15,7 +15,7 @@ namespace Assets.Scripts
         [Serializable]
         public struct TilePrefab
         {
-            public TileType type;
+            public Tile type;
             public GameObject prefab;
         }
 
@@ -24,7 +24,7 @@ namespace Assets.Scripts
         public Color highlightTargetColour = new(1f, 0.1f, 0f, 0.45f);
         public TilePrefab[] tilePrefabs;
 
-        private readonly Dictionary<TileType, List<GameObject>> _prefabsByType = new();
+        private readonly Dictionary<Tile, List<GameObject>> _prefabsByType = new();
         private GameObject[][] _spawnedTiles;
         private Renderer[][] _spawnedTilesHighlights;
 
@@ -93,11 +93,11 @@ namespace Assets.Scripts
                 _spawnedTilesHighlights[x] = new Renderer[simController.MapY];
                 for (var y = 0; y < simController.MapY; y++)
                 {
-                    Tile tile = simController.Map[x][y];
+                    TileExt tileExt = simController.Map[x][y];
 
                     // Get prefab tile.
-                    if (!_prefabsByType.TryGetValue(tile.Type, out List<GameObject> prefabSet))
-                        throw new InvalidOperationException($"No prefab assigned for tile type {tile.Type}");
+                    if (!_prefabsByType.TryGetValue(tileExt.Type, out List<GameObject> prefabSet))
+                        throw new InvalidOperationException($"No prefab assigned for tile type {tileExt.Type}");
                     GameObject prefab = prefabSet[UnityEngine.Random.Range(0, prefabSet.Count)];
 
                     // Instantiate prefab.
@@ -121,7 +121,7 @@ namespace Assets.Scripts
 
                     _spawnedTiles[x][y] = tileObject;
                     _spawnedTilesHighlights[x][y] = highlightPlaneRenderer;
-                    tileObject.name = $"Tile_{tile.Type}_{x}:{y}";
+                    tileObject.name = $"Tile_{tileExt.Type}_{x}:{y}";
                 }
             }
         }
