@@ -1,6 +1,6 @@
-using GameLogic;
+using Simulation;
 
-namespace GameLogicTests;
+namespace Simulation.Tests;
 
 // public class MapLoaderTests
 // {

@@ -1,22 +1,22 @@
-﻿using GameLogic.Events;
+﻿using Simulation.Events;
 
-namespace GameLogic
+namespace Simulation
 {
     public class Ai
     {
         /// <summary>
         ///
         /// </summary>
-        private readonly GameState _gameState;
+        private readonly SimState _simState;
 
         /// <summary>
         ///
         /// </summary>
-        /// <param name="gameState"></param>
-        public Ai(GameState gameState)
+        /// <param name="simState"></param>
+        public Ai(SimState simState)
         {
-            _gameState = gameState;
-            _gameState.EventBus.Subscribe<TurnStateChangeEvent>(HandleTurnStateChange);
+            _simState = simState;
+            _simState.EventBus.Subscribe<TurnStateChangeEvent>(HandleTurnStateChange);
         }
 
         /// <summary>
@@ -33,17 +33,17 @@ namespace GameLogic
         /// </summary>
         private void PerformTurn()
         {
-            Unit[] units = _gameState.GetUnitsByTeam(UnitTeam.Red);
+            Unit[] units = _simState.GetUnitsByTeam(UnitTeam.Red);
             if (units.Length == 0) return;
 
             foreach (Unit unit in units)
             {
                 while (unit.Actions > 0)
                 {
-                    // if (!_gameState.TryGetUnitCoords(unit.Id, out (uint X, uint Y) coords)) break;
-                    // //Unit[] attackableUnits = _gameState.GetAttackableUnitsFromCoord(coords.X, coords.Y, unit.Type, unit.Team);
+                    // if (!_simState.TryGetUnitCoords(unit.Id, out (uint X, uint Y) coords)) break;
+                    // //Unit[] attackableUnits = _simState.GetAttackableUnitsFromCoord(coords.X, coords.Y, unit.Type, unit.Team);
                     // if (attackableUnits.Length == 0) break;
-                    // _gameState.ActionAttackUnit(unit, attackableUnits[0]);
+                    // _simState.ActionAttackUnit(unit, attackableUnits[0]);
                 }
             }
 

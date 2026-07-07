@@ -1,4 +1,4 @@
-﻿namespace GameLogic
+﻿namespace Simulation
 {
     /// <summary>
     /// Types of tiles on the map.

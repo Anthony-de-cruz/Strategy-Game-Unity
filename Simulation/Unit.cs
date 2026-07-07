@@ -1,7 +1,7 @@
 ﻿using System;
-using GameLogic.Events;
+using Simulation.Events;
 
-namespace GameLogic
+namespace Simulation
 {
     /// <summary>
     /// Represents a team to which a unit belongs to.

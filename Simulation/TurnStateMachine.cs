@@ -1,6 +1,6 @@
-﻿using GameLogic.Events;
+﻿using Simulation.Events;
 
-namespace GameLogic
+namespace Simulation
 {
     /// <summary>
     /// 

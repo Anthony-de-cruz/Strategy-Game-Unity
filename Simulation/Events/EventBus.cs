@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace GameLogic.Events
+namespace Simulation.Events
 {
     public interface IGameEvent { }
 

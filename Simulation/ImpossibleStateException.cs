@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.Serialization;
 
-namespace GameLogic
+namespace Simulation
 {
     /// <summary>
     /// Exception thrown when the program reaches a state that should be impossible.

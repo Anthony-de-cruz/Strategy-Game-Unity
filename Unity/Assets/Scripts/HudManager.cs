@@ -1,6 +1,6 @@
 using System;
-using GameLogic;
-using GameLogic.Events;
+using Simulation;
+using Simulation.Events;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -49,7 +49,7 @@ namespace Assets.Scripts
             simController.OnTurnStateChanged += HandleSimTurnStateChanged;
             simController.OnSelectedUnitChanged += HandleSelectedUnitChanged;
             simController.OnUnitDamaged += HandleUnitAttacked;
-            simController.OnStateReset +=  HandleResetState;
+            simController.OnStateReset += HandleResetState;
             endTurnButton.onClick.AddListener(HandleEndTurnButtonClick);
             resetStateButton.onClick.AddListener(HandleReset);
             nextMapButton.onClick.AddListener(HandleLoadNew);
@@ -65,7 +65,7 @@ namespace Assets.Scripts
             simController.OnTurnStateChanged -= HandleSimTurnStateChanged;
             simController.OnSelectedUnitChanged -= HandleSelectedUnitChanged;
             simController.OnUnitDamaged -= HandleUnitAttacked;
-            simController.OnStateReset -=  HandleResetState;
+            simController.OnStateReset -= HandleResetState;
             endTurnButton.onClick.RemoveAllListeners();
             resetStateButton.onClick.RemoveAllListeners();
             nextMapButton.onClick.RemoveAllListeners();

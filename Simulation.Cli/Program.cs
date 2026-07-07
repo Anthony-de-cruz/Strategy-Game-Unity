@@ -1,7 +1,7 @@
-﻿using GameLogic;
-using GameLogic.Events;
+﻿using Simulation;
+using Simulation.Events;
 
-namespace GameLogicSimulation;
+namespace Simulation.Cli;
 
 internal static class Program
 {
@@ -11,7 +11,7 @@ internal static class Program
         var reader =
             new StreamReader(
                 File.OpenRead(
-                    @"C:\Users\Anthony\Projects\Strategy-Game-Unity\GameLogicTests\TestMaps\map0.json"));
+                    @"C:\Users\Anthony\Projects\Strategy-Game-Unity\Simulation.Tests\TestMaps\map0.json"));
         string jsonString = reader.ReadToEnd();
         reader.Close();
 
@@ -23,22 +23,22 @@ internal static class Program
         ) = MapLoader.LoadMetaFromJson(jsonString);
 
         var heightMapRaw = new Span<byte>(new byte[mapX * mapY * 4]);
-        File.OpenRead(@"C:\Users\Anthony\Projects\Strategy-Game-Unity\GameLogicTests\TestMaps\map0height.raw")
+        File.OpenRead(@"C:\Users\Anthony\Projects\Strategy-Game-Unity\Simulation.Tests\TestMaps\map0height.raw")
             .ReadExactly(heightMapRaw);
         reader.Close();
 
         var terrainMapRaw = new Span<byte>(new byte[mapX * mapY * 4]);
-        File.OpenRead(@"C:\Users\Anthony\Projects\Strategy-Game-Unity\GameLogicTests\TestMaps\map0terrain.raw")
+        File.OpenRead(@"C:\Users\Anthony\Projects\Strategy-Game-Unity\Simulation.Tests\TestMaps\map0terrain.raw")
             .ReadExactly(terrainMapRaw);
         reader.Close();
 
         TileType[,] terrainMap = MapLoader.LoadTerrainMapFromRaw(terrainMapRaw, mapX, mapY);
         float[,] heightMap = MapLoader.LoadHeightMapFromRaw(heightMapRaw, mapX, mapY, 10);
 
-        GameState gameState = new(new EventBus(), terrainMap, heightMap, units);
-        Ai ai = new(gameState);
+        SimState simState = new(new EventBus(), terrainMap, heightMap, units);
+        Ai ai = new(simState);
 
-        // (uint, uint)[] coords = gameState.GetMoveableCoords(2, 2, UnitType.Infantry);
+        // (uint, uint)[] coords = simState.GetMoveableCoords(2, 2, UnitType.Infantry);
         // foreach ((uint, uint) coord in coords)
         //     Console.WriteLine(coord);
 

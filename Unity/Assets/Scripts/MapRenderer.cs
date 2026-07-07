@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using GameLogic;
+using Simulation;
 using UnityEngine;
 
 namespace Assets.Scripts

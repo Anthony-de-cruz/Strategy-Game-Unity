@@ -1,14 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using GameLogic.Events;
+using Simulation.Events;
 
-namespace GameLogic
+namespace Simulation
 {
     ///  <summary>
     ///  Represents the current state of the game.
     ///  </summary>
-    public class GameState : IDisposable
+    public class SimState : IDisposable
     {
         /// <summary>
         /// Width of the map.
@@ -46,13 +46,13 @@ namespace GameLogic
         private uint _unitIdCounter = 1;
 
         /// <summary>
-        /// Constructor for GameState.
+        /// Constructor for SimState.
         /// </summary>
         /// <param name="eventBus"></param>
         /// <param name="terrainMap"></param>
         /// <param name="heightMap"></param>
         /// <param name="units"></param>
-        public GameState(EventBus eventBus, TileType[,] terrainMap, float[,] heightMap, MapLoader.UnitData[] units)
+        public SimState(EventBus eventBus, TileType[,] terrainMap, float[,] heightMap, MapLoader.UnitData[] units)
         {
             if (terrainMap.GetLength(0) != heightMap.GetLength(0) + 1 ||
                 terrainMap.GetLength(1) != heightMap.GetLength(1) + 1)

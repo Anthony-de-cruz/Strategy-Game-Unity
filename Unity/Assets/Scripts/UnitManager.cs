@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using GameLogic;
-using GameLogic.Events;
+using Simulation;
+using Simulation.Events;
 using UnityEngine;
 
 

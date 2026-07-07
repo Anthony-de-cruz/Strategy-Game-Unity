@@ -1,6 +1,6 @@
 using System;
-using GameLogic;
-using GameLogic.Events;
+using Simulation;
+using Simulation.Events;
 using UnityEngine;
 
 namespace Assets.Scripts

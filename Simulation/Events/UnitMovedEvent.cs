@@ -1,4 +1,4 @@
-﻿namespace GameLogic.Events
+﻿namespace Simulation.Events
 {
     /// <summary>
     /// Event to represent a unit moving.

@@ -1,8 +1,8 @@
 using System;
 using System.Collections;
 using System.IO;
-using GameLogic;
-using GameLogic.Events;
+using Simulation;
+using Simulation.Events;
 using UnityEngine;
 
 namespace Assets.Scripts
@@ -47,7 +47,7 @@ namespace Assets.Scripts
         /// <summary>
         ///     Simulation state.
         /// </summary>
-        private GameState _simState;
+        private SimState _simState;
 
         private string _map0JsonString;
         private string _map1JsonString;
@@ -135,7 +135,7 @@ namespace Assets.Scripts
         {
             _simState?.Dispose();
 
-            _simState = new GameState(_eventBus, jsonString);
+            _simState = new SimState(_eventBus, jsonString);
             _simState.TurnStateMachine.Init();
         }
 
