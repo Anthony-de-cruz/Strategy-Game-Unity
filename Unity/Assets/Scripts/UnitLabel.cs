@@ -1,6 +1,6 @@
 using System.Collections;
-using GameLogic;
-using GameLogic.Events;
+using Simulation;
+using Simulation.Events;
 using UnityEngine;
 using TMPro;
 using UnityEngine.UI;

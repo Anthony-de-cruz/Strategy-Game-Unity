@@ -8,14 +8,14 @@ namespace Assets.Scripts
     {
         public InputManager inputManager;
 
-        public float moveSpeed = 25f;
-        public float moveFastSpeed = 50f;
+        public float moveSpeed = 50f;
+        public float moveFastSpeed = 100f;
         public float yawSpeed = 0.2f;
         public float pitchSpeed = 0.2f;
 
-        public Vector2 xBounds = new(0, 100);
-        public Vector2 yBounds = new(0, 100);
-        public Vector2 zBounds = new(0, 100);
+        public Vector2 xBounds = new(0, 1000);
+        public Vector2 yBounds = new(0, 1000);
+        public Vector2 zBounds = new(0, 1000);
         public Vector2 pitchBounds = new(-25f, 75f);
 
         private bool _isMovingFast;

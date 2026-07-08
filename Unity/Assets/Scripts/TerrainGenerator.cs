@@ -81,102 +81,8 @@ namespace Assets.Scripts
         /// </summary>
         private void OnEnable()
         {
-            var map = new TerrainTile[,]
-            {
-                {
-                    new(0, Tile.Grassland),
-                    new(0, Tile.Grassland),
-                    new(1, Tile.Woodland),
-                    new(1, Tile.Woodland),
-                    new(1, Tile.Paved),
-                    new(1, Tile.Paved),
-                    new(1, Tile.Grassland),
-                    new(0, Tile.Grassland)
-                },
-                {
-                    new(0, Tile.Grassland),
-                    new(1, Tile.Grassland),
-                    new(2, Tile.Woodland),
-                    new(5, Tile.Woodland),
-                    new(5, Tile.Building),
-                    new(3, Tile.Building),
-                    new(1, Tile.Paved),
-                    new(0, Tile.Grassland)
-                },
-                {
-                    new(0, Tile.Grassland),
-                    new(1, Tile.Grassland),
-                    new(1, Tile.Woodland),
-                    new(5, Tile.Woodland),
-                    new(5, Tile.Paved),
-                    new(2, Tile.Paved),
-                    new(1, Tile.Paved),
-                    new(0, Tile.Grassland)
-                },
-                {
-                    new(1, Tile.Grassland),
-                    new(1, Tile.Grassland),
-                    new(1, Tile.Grassland),
-                    new(1, Tile.Paved),
-                    new(1, Tile.Paved),
-                    new(1, Tile.Paved),
-                    new(1, Tile.Paved),
-                    new(1, Tile.Grassland)
-                },
-                {
-                    new(0, Tile.Grassland),
-                    new(1, Tile.Grassland),
-                    new(1, Tile.Woodland),
-                    new(1, Tile.Woodland),
-                    new(1, Tile.Paved),
-                    new(3, Tile.Building),
-                    new(1, Tile.Paved),
-                    new(0, Tile.Grassland)
-                },
-                {
-                    new(0, Tile.Grassland),
-                    new(0, Tile.Grassland),
-                    new(1, Tile.Woodland),
-                    new(1, Tile.Grassland),
-                    new(1, Tile.Grassland),
-                    new(1, Tile.Paved),
-                    new(0, Tile.Grassland),
-                    new(0, Tile.Grassland)
-                },
-                {
-                    new(0, Tile.Grassland),
-                    new(0, Tile.Grassland),
-                    new(1, Tile.Woodland),
-                    new(1, Tile.Grassland),
-                    new(1, Tile.Grassland),
-                    new(1, Tile.Grassland),
-                    new(0, Tile.Grassland),
-                    new(0, Tile.Grassland)
-                },
-                {
-                    new(0, Tile.Grassland),
-                    new(1, Tile.Paved),
-                    new(0, Tile.Grassland),
-                    new(0, Tile.Grassland),
-                    new(1, Tile.Grassland),
-                    new(0, Tile.Grassland),
-                    new(0, Tile.Grassland),
-                    new(0, Tile.Grassland)
-                },
-                {
-                    new(0, Tile.Grassland),
-                    new(0, Tile.Grassland),
-                    new(0, Tile.Grassland),
-                    new(0, Tile.Grassland),
-                    new(0, Tile.Grassland),
-                    new(0, Tile.Grassland),
-                    new(0, Tile.Grassland),
-                    new(0, Tile.Grassland)
-                },
-            };
-
-            _terrainMeshFilter.mesh = GenerateTerrainMesh(map);
-            GenerateTerrainDetails(map);
+            _terrainMeshFilter.mesh = GenerateTerrainMesh(simController.TerrainMap, simController.HeightMap);
+            //GenerateTerrainDetails(map);
 
             simController.OnStateReset += HandleStateReset;
         }
@@ -202,24 +108,36 @@ namespace Assets.Scripts
         /// <summary>
         ///
         /// </summary>
+        /// <param name="terrainMap"></param>
         /// <param name="heightMap"></param>
-        private Mesh GenerateTerrainMesh(TerrainTile[,] heightMap)
+        /// <returns></returns>
+        /// <exception cref="InvalidOperationException"></exception>
+        private Mesh GenerateTerrainMesh(Tile[,] terrainMap, float[,] heightMap)
         {
-            int width = heightMap.GetLength(0);
-            int height = heightMap.GetLength(1);
-            int scale = SimController.WorldScale;
+            int tileWidth = terrainMap.GetLength(0);
+            int tileHeight = terrainMap.GetLength(1);
+
+            int vertexWidth = heightMap.GetLength(0);
+            int vertexHeight = heightMap.GetLength(1);
+
+            if (vertexWidth != tileWidth + 1 || vertexHeight != tileHeight + 1)
+                throw new InvalidOperationException();
 
             // Vertex & uv generation.
-            var vertices = new Vector3[width * height];
+            var vertices = new Vector3[vertexWidth * vertexHeight];
             var uv = new Vector2[vertices.Length];
-            for (var y = 0; y < height; y++)
+
+            for (var y = 0; y < vertexHeight; y++)
+            for (var x = 0; x < vertexWidth; x++)
             {
-                for (var x = 0; x < width; x++)
-                {
-                    int vertexIndex = Index(x, y);
-                    vertices[vertexIndex] = new Vector3(x * scale, heightMap[x, y].Height, y * scale);
-                    uv[vertexIndex] = new Vector2(x, y);
-                }
+                int vertexIndex = Index(x, y);
+
+                vertices[vertexIndex] = new Vector3(
+                    x * SimController.WorldScale,
+                    heightMap[x, y],
+                    y * SimController.WorldScale);
+
+                uv[vertexIndex] = new Vector2(x, y);
             }
 
             // Triangle generation.
@@ -227,30 +145,29 @@ namespace Assets.Scripts
             for (var i = 0; i < trianglesBySubmesh.Length; i++)
                 trianglesBySubmesh[i] = new List<int>();
 
-            for (var y = 0; y < height - 1; y++)
+            for (var y = 0; y < tileHeight; y++)
+            for (var x = 0; x < tileWidth; x++)
             {
-                for (var x = 0; x < width - 1; x++)
-                {
-                    List<int> triangles = trianglesBySubmesh[(int)heightMap[x, y].Type];
+                List<int> triangles = trianglesBySubmesh[(int)terrainMap[x, y]];
 
-                    int lowerLeft = Index(x, y);
-                    int lowerRight = Index(x + 1, y);
-                    int upperLeft = Index(x, y + 1);
-                    int upperRight = Index(x + 1, y + 1);
+                int lowerLeft = Index(x, y);
+                int lowerRight = Index(x + 1, y);
+                int upperLeft = Index(x, y + 1);
+                int upperRight = Index(x + 1, y + 1);
 
-                    triangles.Add(lowerLeft);
-                    triangles.Add(upperLeft);
-                    triangles.Add(lowerRight);
-                    triangles.Add(upperLeft);
-                    triangles.Add(upperRight);
-                    triangles.Add(lowerRight);
-                }
+                triangles.Add(lowerLeft);
+                triangles.Add(upperLeft);
+                triangles.Add(lowerRight);
+                triangles.Add(upperLeft);
+                triangles.Add(upperRight);
+                triangles.Add(lowerRight);
             }
 
             Mesh mesh = new();
             mesh.SetVertices(vertices);
             mesh.SetUVs(0, uv);
             mesh.subMeshCount = trianglesBySubmesh.Length;
+
             for (var i = 0; i < trianglesBySubmesh.Length; i++)
                 mesh.SetTriangles(trianglesBySubmesh[i], i);
 
@@ -258,41 +175,41 @@ namespace Assets.Scripts
             mesh.RecalculateBounds();
             return mesh;
 
-            int Index(int x, int y) => x + y * width;
+            int Index(int x, int y) => x + y * vertexWidth;
         }
 
-        private void GenerateTerrainDetails(TerrainTile[,] heightMap)
-        {
-            int width = heightMap.GetLength(0);
-            int height = heightMap.GetLength(1);
-            int scale = SimController.WorldScale;
-
-            for (var y = 0; y < height; y++)
-            {
-                for (var x = 0; x < width; x++)
-                {
-                    // Instantiate prefab.
-                    if (heightMap[x, y].Type is Tile.Grassland or Tile.Paved)
-                        continue;
-                    GameObject prefab = heightMap[x, y].Type is Tile.Woodland
-                        ? prefabTrees
-                        : prefabBuilding;
-                    Vector3 position = new(
-                        x * scale + scale * 0.5f,
-                        heightMap[x, y].Height,
-                        y * scale + scale * 0.5f
-                    );
-                    GameObject detailObject = Instantiate(
-                        prefab,
-                        position,
-                        // Random rotation.
-                        Quaternion.Euler(0f, UnityEngine.Random.Range(0, 4) * 90f, 0f),
-                        transform
-                    );
-                    _terrainDetails.Add(detailObject);
-                }
-            }
-        }
+        // private void GenerateTerrainDetails(Tile[,] terrainMap, float[,] heightMap)
+        // {
+        //     int width = heightMap.GetLength(0);
+        //     int height = heightMap.GetLength(1);
+        //     int scale = SimController.WorldScale;
+        //
+        //     for (var y = 0; y < height; y++)
+        //     {
+        //         for (var x = 0; x < width; x++)
+        //         {
+        //             // Instantiate prefab.
+        //             if (heightMap[x, y].Type is Tile.Grassland or Tile.Paved)
+        //                 continue;
+        //             GameObject prefab = heightMap[x, y].Type is Tile.Woodland
+        //                 ? prefabTrees
+        //                 : prefabBuilding;
+        //             Vector3 position = new(
+        //                 x * scale + scale * 0.5f,
+        //                 heightMap[x, y].Height,
+        //                 y * scale + scale * 0.5f
+        //             );
+        //             GameObject detailObject = Instantiate(
+        //                 prefab,
+        //                 position,
+        //                 // Random rotation.
+        //                 Quaternion.Euler(0f, UnityEngine.Random.Range(0, 4) * 90f, 0f),
+        //                 transform
+        //             );
+        //             _terrainDetails.Add(detailObject);
+        //         }
+        //     }
+        // }
 
         private void HandleStateReset()
         {

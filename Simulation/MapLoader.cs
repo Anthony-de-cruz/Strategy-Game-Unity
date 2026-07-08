@@ -24,7 +24,7 @@ namespace Simulation
         /// <exception cref="InvalidOperationException">Invalid map data.</exception>
         public static (string, uint, uint, UnitData[]) LoadMetaFromJson(string json)
         {
-            #nullable enable
+#nullable enable
             JsonMapData? jsonMapData;
             try
             {
@@ -37,7 +37,7 @@ namespace Simulation
 
             if (jsonMapData is null)
                 throw new InvalidOperationException("Failed to deserialize map data");
-            #nullable disable
+#nullable disable
 
             if (jsonMapData.Name.Length == 0 ||
                 jsonMapData.Name.Length > MaxMapNameLength)
@@ -85,7 +85,7 @@ namespace Simulation
             if (bytes.Length != expectedBytes)
                 throw new InvalidOperationException($"Expected {expectedBytes} bytes, got {bytes.Length}");
 
-            var samples = new Tile[width, height];
+            var tiles = new Tile[width, height];
 
             for (uint y = 0; y < height; y++)
             for (uint x = 0; x < width; x++)
@@ -100,17 +100,17 @@ namespace Simulation
                     throw new InvalidOperationException(
                         $"Terrain pixel at ({x},{y}) is not opaque RGBA: ({r},{g},{b},{a})");
                 if (r == 64 && g == 64 && b == 32)
-                    samples[x, y] = Tile.Paved;
+                    tiles[x, y] = Tile.Paved;
                 else if (r == 255 && g == 160 && b == 255)
-                    samples[x, y] = Tile.Building;
+                    tiles[x, y] = Tile.Building;
                 else if (r == 0 && g == 245 && b == 0)
-                    samples[x, y] = Tile.Grassland;
+                    tiles[x, y] = Tile.Grassland;
                 else if (r == 0 && g == 165 && b == 0)
-                    samples[x, y] = Tile.Woodland;
+                    tiles[x, y] = Tile.Woodland;
                 else throw new InvalidOperationException($"Invalid terrain type at ({x},{y}): ({r},{g},{b},{a})");
             }
 
-            return samples;
+            return tiles;
         }
 
         /// <summary>
@@ -138,7 +138,7 @@ namespace Simulation
             if (bytes.Length != expectedBytes)
                 throw new InvalidOperationException($"Expected {expectedBytes} bytes, got {bytes.Length}");
 
-            var samples = new float[width, height];
+            var tiles = new float[width, height];
 
             for (uint y = 0; y < height; y++)
             for (uint x = 0; x < width; x++)
@@ -153,10 +153,42 @@ namespace Simulation
                     throw new InvalidOperationException(
                         $"Height pixel at ({x},{y}) is not opaque greyscale RGBA: ({r},{g},{b},{a})");
 
-                samples[x, y] = (float)(r * scale) / 255;
+                tiles[x, y] = (float)(r * scale) / 255;
             }
 
-            return samples;
+            return ConvertHeightMapTileToVertex(tiles);
+        }
+
+        /// <summary>
+        ///
+        /// </summary>
+        /// <param name="heightMap"></param>
+        /// <returns></returns>
+        private static float[,] ConvertHeightMapTileToVertex(float[,] heightMap)
+        {
+            int width = heightMap.GetLength(0);
+            int height = heightMap.GetLength(1);
+            var vertices = new float[width + 1, height + 1];
+
+            // Set each vertex to the average height of each adjacent tile.
+            for (var vy = 0; vy < height + 1; vy++)
+            for (var vx = 0; vx < width + 1; vx++)
+            {
+                var sum = 0f;
+                var count = 0;
+                // Iterate over the bottom left to the top right adjacent tiles.
+                for (int ty = vy - 1; ty <= vy; ty++)
+                for (int tx = vx - 1; tx <= vx; tx++)
+                {
+                    if (tx < 0 || ty < 0 || tx >= width || ty >= height) continue;
+                    sum += heightMap[tx, ty];
+                    count++;
+                }
+
+                vertices[vx, vy] = sum / count;
+            }
+
+            return vertices;
         }
 
         public static string SaveMapToJson(string name, uint width, uint height, List<UnitData> units)

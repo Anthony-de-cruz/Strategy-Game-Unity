@@ -6,40 +6,31 @@ internal static class Program
 {
     private static void Main(string[] args)
     {
-        // Todo - Replace with relative path.
-        var reader =
-            new StreamReader(
-                File.OpenRead(
-                    @"C:\Users\Anthony\Projects\Strategy-Game-Unity\Simulation.Tests\TestMaps\map0.json"));
-        string jsonString = reader.ReadToEnd();
-        reader.Close();
-
         (
-            string mapName,
+            string _,
             uint mapX,
             uint mapY,
             MapLoader.UnitData[] units
-        ) = MapLoader.LoadMetaFromJson(jsonString);
-
-        var heightMapRaw = new Span<byte>(new byte[mapX * mapY * 4]);
-        File.OpenRead(@"C:\Users\Anthony\Projects\Strategy-Game-Unity\Simulation.Tests\TestMaps\map0height.raw")
-            .ReadExactly(heightMapRaw);
-        reader.Close();
+        ) = MapLoader.LoadMetaFromJson(
+            File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "TestMaps", "map0.json")));
 
         var terrainMapRaw = new Span<byte>(new byte[mapX * mapY * 4]);
-        File.OpenRead(@"C:\Users\Anthony\Projects\Strategy-Game-Unity\Simulation.Tests\TestMaps\map0terrain.raw")
+        var heightMapRaw = new Span<byte>(new byte[mapX * mapY * 4]);
+
+        File.OpenRead(Path.Combine(AppContext.BaseDirectory, "TestMaps", "map0terrain.raw"))
             .ReadExactly(terrainMapRaw);
-        reader.Close();
+        File.OpenRead(Path.Combine(AppContext.BaseDirectory, "TestMaps", "map0height.raw"))
+            .ReadExactly(heightMapRaw);
 
         Tile[,] terrainMap = MapLoader.LoadTerrainMapFromRaw(terrainMapRaw, mapX, mapY);
         float[,] heightMap = MapLoader.LoadHeightMapFromRaw(heightMapRaw, mapX, mapY, 10);
 
-        SimState simState = new(new EventBus(), terrainMap, heightMap, units);
-        Ai ai = new(simState);
+        EventBus eventBus = new();
+        SimState simState = new(eventBus, terrainMap, heightMap, units);
+        Ai ai = new(simState, eventBus);
 
         // (uint, uint)[] coords = simState.GetMoveableCoords(2, 2, UnitType.Infantry);
         // foreach ((uint, uint) coord in coords)
         //     Console.WriteLine(coord);
-
     }
 }

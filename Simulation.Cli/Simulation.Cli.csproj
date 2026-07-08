@@ -11,4 +11,12 @@
     <ProjectReference Include="..\Simulation\Simulation.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include="..\SharedAssets\TestMaps\**\*">
+      <Link>TestMaps\%(RecursiveDir)%(Filename)%(Extension)</Link>
+      <TargetPath>TestMaps\%(RecursiveDir)%(Filename)%(Extension)</TargetPath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

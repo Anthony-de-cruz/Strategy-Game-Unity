@@ -13,12 +13,10 @@ namespace Assets.Scripts
     /// </summary>
     public class SimController : MonoBehaviour
     {
-        // === MODELS ===
-
         /// <summary>
         ///     Represents the sim to game world scale factor.
         /// </summary>
-        public static readonly int WorldScale = 10;
+        public const int WorldScale = 10;
 
         /// <summary>
         ///
@@ -49,33 +47,26 @@ namespace Assets.Scripts
         /// </summary>
         private SimState _simState;
 
-        private string _map0JsonString;
-        private string _map1JsonString;
         private uint _currentMap;
 
-        ///////////////////
-        // UNITY DRIVERS //
-        ///////////////////
+        #region UNITY DRIVERS
 
         /// <summary>
         ///     Called on script load.
         /// </summary>
         private void Awake()
         {
-            _map0JsonString = File.ReadAllText(Path.Combine(Application.streamingAssetsPath, "Maps", "map0.json"));
-            _map1JsonString = File.ReadAllText(Path.Combine(Application.streamingAssetsPath, "Maps", "map1.json"));
-
             _eventBus.Subscribe<TurnStateChangeEvent>(HandleTurnStateChanged);
             _eventBus.Subscribe<UnitAttackedEvent>(HandleUnitAttacked);
             _eventBus.Subscribe<UnitMovedEvent>(HandleUnitMoved);
             _eventBus.Subscribe<UnitSpentActionEvent>(HandleUnitSpentAction);
 
-            LoadGameState(_map0JsonString);
+            LoadSimState();
         }
 
-        ///////////////////
-        // STATE DRIVERS //
-        ///////////////////
+        #endregion UNITY DRIVERS
+
+        #region STATE DRIVERS
 
         /// <summary>
         ///     Raised when the selected unit changes.
@@ -131,28 +122,49 @@ namespace Assets.Scripts
         ///
         /// </summary>
         /// <param name="jsonString"></param>
-        private void LoadGameState(string jsonString)
+        private void LoadSimState()
         {
-            _simState?.Dispose();
+            (
+                string _,
+                uint mapX,
+                uint mapY,
+                MapLoader.UnitData[] units
+            ) = MapLoader.LoadMetaFromJson(
+                File.ReadAllText(Path.Combine(Application.streamingAssetsPath, "TestMaps", "map0.json")));
 
-            _simState = new SimState(_eventBus, jsonString);
+            var terrainMapRaw = new Span<byte>(new byte[mapX * mapY * 4]);
+            var heightMapRaw = new Span<byte>(new byte[mapX * mapY * 4]);
+
+            if (File.OpenRead(Path.Combine(Application.streamingAssetsPath, "TestMaps", "map0terrain.raw"))
+                    .Read(terrainMapRaw) != mapX * mapY * 4 ||
+                File.OpenRead(Path.Combine(Application.streamingAssetsPath, "TestMaps", "map0height.raw"))
+                    .Read(heightMapRaw) != mapX * mapY * 4)
+                throw new InvalidConfigException();
+
+            Tile[,] terrainMap = MapLoader.LoadTerrainMapFromRaw(terrainMapRaw, mapX, mapY);
+            float[,] heightMap = MapLoader.LoadHeightMapFromRaw(heightMapRaw, mapX, mapY, 25);
+
+            _simState?.Dispose();
+            _simState = new SimState(_eventBus, terrainMap, heightMap, units);
             _simState.TurnStateMachine.Init();
         }
 
         public void ResetLevel()
         {
-            LoadGameState(_currentMap == 0
-                ? _map0JsonString
-                : _map1JsonString);
+            // LoadSimState(_currentMap == 0
+            //     ? _map0JsonString
+            //     : _map1JsonString);
+            LoadSimState();
             OnStateReset?.Invoke();
         }
 
         public void LoadLevel(uint number)
         {
             _currentMap = number;
-            LoadGameState(_currentMap == 0
-                ? _map0JsonString
-                : _map1JsonString);
+            LoadSimState();
+            // LoadSimState(_currentMap == 0
+            //     ? _map0JsonString
+            //     : _map1JsonString);
             OnStateReset?.Invoke();
         }
 
@@ -165,7 +177,7 @@ namespace Assets.Scripts
         {
             if (TurnState != TurnState.BlueTurn) return false;
             if (xCoord >= _simState.MapWidth || yCoord >= _simState.MapHeight) return false;
-            uint id = _simState.TerrainMap[xCoord][yCoord].UnitId;
+            uint id = _simState.UnitMap[xCoord, yCoord];
 
             // Deselect.
             if (id == 0)
@@ -196,7 +208,7 @@ namespace Assets.Scripts
         public bool TrySelectUnitAction(uint xCoord, uint yCoord)
         {
             if (SelectedId == 0) return false;
-            return _simState.TerrainMap[xCoord][yCoord].UnitId != 0
+            return _simState.UnitMap[xCoord, yCoord] != 0
                 ? TryAttackWithSelectedUnit(xCoord, yCoord)
                 : TryMoveSelectedUnit(xCoord, yCoord);
         }
@@ -209,7 +221,7 @@ namespace Assets.Scripts
         private bool TryMoveSelectedUnit(uint xCoord, uint yCoord)
         {
             if (SelectedId == 0) return false;
-            if (_simState.TerrainMap[xCoord][yCoord].UnitId != 0) return false;
+            if (_simState.UnitMap[xCoord, yCoord] != 0) return false;
             if (!TryGetUnitById(SelectedId, out UnitView unit)) throw new InvalidConfigException();
             // Dijkstra is slow, in future, an exact path should be passed in which can be checked.
             if (Array.IndexOf(GetMoveableCoords(unit), (xCoord, yCoord)) == -1) return false;
@@ -268,10 +280,10 @@ namespace Assets.Scripts
         private bool TryAttackWithSelectedUnit(uint xCoord, uint yCoord)
         {
             if (SelectedId == 0) return false;
-            if (_simState.TerrainMap[xCoord][yCoord].UnitId == 0) return false;
+            if (_simState.UnitMap[xCoord, yCoord] == 0) return false;
             if (!TryGetUnitById(SelectedId, out UnitView unit) ||
-                !TryGetUnitById(_simState.TerrainMap[xCoord][yCoord].UnitId, out UnitView target))
-                throw new InvalidConfigException();
+                !TryGetUnitById(_simState.UnitMap[xCoord, yCoord], out UnitView target))
+                throw new ImpossibleStateException();
 
             bool isAttackable = false;
             foreach (UnitView v in GetAttackableUnits(unit))
@@ -350,28 +362,23 @@ namespace Assets.Scripts
             _simState.TurnStateMachine.EndTurn();
         }
 
-        ////////////////////
-        // STATE QUERIES //
-        ///////////////////
+        #endregion STATE DRIVERS
 
-        /// <summary>
-        ///     Get the map layout.
-        /// </summary>
-        public TileExt[][] Map => _simState.TerrainMap;
+        #region STATE QUERIES
 
-        /// <summary>
-        ///     Get map width.
-        /// </summary>
-        public uint MapX => _simState.MapWidth;
+        /// <inheritdoc cref="SimState.TerrainMap"/>
+        public Tile[,] TerrainMap => _simState.TerrainMap;
 
-        /// <summary>
-        ///     Get map height.
-        /// </summary>
-        public uint MapY => _simState.MapHeight;
+        /// <inheritdoc cref="SimState.HeightMap"/>
+        public float[,] HeightMap => _simState.HeightMap;
 
-        /// <summary>
-        ///     Get turn state.
-        /// </summary>
+        /// <inheritdoc cref="SimState.MapWidth"/>
+        public uint MapWidth => _simState.MapWidth;
+
+        /// <inheritdoc cref="SimState.MapHeight"/>
+        public uint MapHeight => _simState.MapHeight;
+
+        /// <inheritdoc cref="TurnStateMachine.State"/>
         public TurnState TurnState => _simState.TurnStateMachine.State;
 
         /// <summary>
@@ -447,9 +454,9 @@ namespace Assets.Scripts
                 ? throw new InvalidConfigException()
                 : u;
 
-        ////////////////////
-        // EVENT HANDLING //
-        ////////////////////
+        #endregion STATE QUERIES
+
+        #region EVENT HANDLING
 
         /// <summary>
         ///     Forwards raised sim <see cref="TurnStateChangeEvent" />.
@@ -510,5 +517,7 @@ namespace Assets.Scripts
             );
             OnActionSpent?.Invoke(simEvent);
         }
+
+        #endregion EVENT HANDLING
     }
 }

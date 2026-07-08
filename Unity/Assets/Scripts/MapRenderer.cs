@@ -74,8 +74,8 @@ namespace Assets.Scripts
             simController.OnResetHighlight -= HandleHighlightReset;
             simController.OnStateReset -= HandleStateReset;
 
-            for (var y = 0; y < simController.MapY; y++)
-            for (var x = 0; x < simController.MapX; x++)
+            for (var y = 0; y < simController.MapHeight; y++)
+            for (var x = 0; x < simController.MapWidth; x++)
                 Destroy(_spawnedTiles[x][y]);
         }
 
@@ -85,19 +85,19 @@ namespace Assets.Scripts
         /// <exception cref="InvalidOperationException"></exception>
         private void Render()
         {
-            _spawnedTiles = new GameObject[simController.MapX][];
-            _spawnedTilesHighlights = new Renderer[simController.MapX][];
-            for (var x = 0; x < simController.MapX; x++)
+            _spawnedTiles = new GameObject[simController.MapWidth][];
+            _spawnedTilesHighlights = new Renderer[simController.MapWidth][];
+            for (var x = 0; x < simController.MapWidth; x++)
             {
-                _spawnedTiles[x] = new GameObject[simController.MapY];
-                _spawnedTilesHighlights[x] = new Renderer[simController.MapY];
-                for (var y = 0; y < simController.MapY; y++)
+                _spawnedTiles[x] = new GameObject[simController.MapHeight];
+                _spawnedTilesHighlights[x] = new Renderer[simController.MapHeight];
+                for (var y = 0; y < simController.MapHeight; y++)
                 {
-                    TileExt tileExt = simController.Map[x][y];
+                    Tile tile = simController.TerrainMap[x,y];
 
                     // Get prefab tile.
-                    if (!_prefabsByType.TryGetValue(tileExt.Type, out List<GameObject> prefabSet))
-                        throw new InvalidOperationException($"No prefab assigned for tile type {tileExt.Type}");
+                    if (!_prefabsByType.TryGetValue(tile, out List<GameObject> prefabSet))
+                        throw new InvalidOperationException($"No prefab assigned for tile type {tile}");
                     GameObject prefab = prefabSet[UnityEngine.Random.Range(0, prefabSet.Count)];
 
                     // Instantiate prefab.
@@ -121,7 +121,7 @@ namespace Assets.Scripts
 
                     _spawnedTiles[x][y] = tileObject;
                     _spawnedTilesHighlights[x][y] = highlightPlaneRenderer;
-                    tileObject.name = $"Tile_{tileExt.Type}_{x}:{y}";
+                    tileObject.name = $"Tile_{tile}_{x}:{y}";
                 }
             }
         }
@@ -181,15 +181,15 @@ namespace Assets.Scripts
         private void HandleHighlightReset()
         {
             // Todo - Would be more efficient to cache which ones are enabled.
-            for (var x = 0; x < simController.MapX; x++)
-            for (var y = 0; y < simController.MapY; y++)
+            for (var x = 0; x < simController.MapWidth; x++)
+            for (var y = 0; y < simController.MapHeight; y++)
                 _spawnedTilesHighlights[x][y].enabled = false;
         }
 
         private void HandleStateReset()
         {
-            for (var x = 0; x < simController.MapX; x++)
-            for (var y = 0; y < simController.MapY; y++)
+            for (var x = 0; x < simController.MapWidth; x++)
+            for (var y = 0; y < simController.MapHeight; y++)
                 Destroy(_spawnedTiles[x][y]);
 
             Render();
