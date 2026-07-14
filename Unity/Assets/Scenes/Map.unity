@@ -222,6 +222,100 @@ Canvas:
   m_SortingLayerID: 0
   m_SortingOrder: 0
   m_TargetDisplay: 0
+--- !u!1 &84573695
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 84573698}
+  - component: {fileID: 84573697}
+  - component: {fileID: 84573696}
+  m_Layer: 0
+  m_Name: Terrain
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 2147483647
+  m_IsActive: 1
+--- !u!154 &84573696
+TerrainCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 84573695}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_TerrainData: {fileID: 15600000, guid: d1d5e0723b42a6242a657493967f7191, type: 2}
+  m_EnableTreeColliders: 0
+--- !u!218 &84573697
+Terrain:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 84573695}
+  m_Enabled: 1
+  serializedVersion: 6
+  m_TerrainData: {fileID: 15600000, guid: d1d5e0723b42a6242a657493967f7191, type: 2}
+  m_TreeDistance: 5000
+  m_TreeBillboardDistance: 50
+  m_TreeCrossFadeLength: 5
+  m_TreeMaximumFullLODCount: 50
+  m_DetailObjectDistance: 80
+  m_DetailObjectDensity: 1
+  m_HeightmapPixelError: 5
+  m_SplatMapDistance: 1000
+  m_HeightmapMinimumLODSimplification: 0
+  m_HeightmapMaximumLOD: 0
+  m_ShadowCastingMode: 2
+  m_DrawHeightmap: 1
+  m_DrawInstanced: 0
+  m_DrawTreesAndFoliage: 1
+  m_StaticShadowCaster: 0
+  m_IgnoreQualitySettings: 0
+  m_ReflectionProbeUsage: 1
+  m_MaterialTemplate: {fileID: 2100000, guid: 594ea882c5a793440b60ff72d896021e, type: 2}
+  m_BakeLightProbesForTrees: 1
+  m_PreserveTreePrototypeLayers: 0
+  m_DeringLightProbesForTrees: 1
+  m_ReceiveGI: 1
+  m_ScaleInLightmap: 0.02048
+  m_LightmapParameters: {fileID: 15203, guid: 0000000000000000f000000000000000, type: 0}
+  m_GroupingID: 0
+  m_RenderingLayerMask: 1
+  m_AllowAutoConnect: 1
+  m_EnableHeightmapRayTracing: 1
+  m_EnableTreesAndDetailsRayTracing: 0
+  m_EnableHeightmapLODFrustumCulling: 1
+  m_TreeMotionVectorModeOverride: 3
+--- !u!4 &84573698
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 84573695}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &330585543
 GameObject:
   m_ObjectHideFlags: 0
@@ -780,13 +874,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Assets.Scripts.CameraTarget
   inputManager: {fileID: 859526022}
-  moveSpeed: 25
-  moveFastSpeed: 50
+  moveSpeed: 50
+  moveFastSpeed: 100
   yawSpeed: 0.2
   pitchSpeed: 0.2
-  xBounds: {x: 0, y: 100}
-  yBounds: {x: 0, y: 100}
-  zBounds: {x: 0, y: 100}
+  xBounds: {x: 0, y: 1000}
+  yBounds: {x: 0, y: 1000}
+  zBounds: {x: 0, y: 1000}
   pitchBounds: {x: -25, y: 75}
 --- !u!1 &1523323891
 GameObject:
@@ -960,7 +1054,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1758549885
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -983,8 +1077,12 @@ MonoBehaviour:
     material: {fileID: 2100000, guid: 1479b115baa338947a483c1267940887, type: 2}
   - type: 3
     material: {fileID: 2100000, guid: 4f3c367848d8dbc4783882f9942f1b77, type: 2}
-  prefabBuilding: {fileID: 2013034215635838560, guid: bcfce3a3d2322ca45ae04f3aea200d4a, type: 3}
-  prefabTrees: {fileID: 2013034215635838560, guid: bcfce3a3d2322ca45ae04f3aea200d4a, type: 3}
+  buildingPrefabs:
+  - {fileID: 2013034215635838560, guid: bcfce3a3d2322ca45ae04f3aea200d4a, type: 3}
+  treePrefabs:
+  - {fileID: 299712424454941021, guid: 022485ff60e4a26418217d8ab778a812, type: 3}
+  - {fileID: 5530652132047498927, guid: 40cc2dd6b744b344a9a4ea56076c47fb, type: 3}
+  - {fileID: 5400752399725384465, guid: af90fe2f0f252bf4b8c2ab79bcd41edf, type: 3}
 --- !u!4 &1758549886
 Transform:
   m_ObjectHideFlags: 0
@@ -1237,3 +1335,4 @@ SceneRoots:
   - {fileID: 832575519}
   - {fileID: 697404117}
   - {fileID: 1758549886}
+  - {fileID: 84573698}

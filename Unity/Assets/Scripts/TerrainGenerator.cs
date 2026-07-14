@@ -10,16 +10,16 @@ namespace Assets.Scripts
     {
         [SerializeField] private SimController simController;
         [SerializeField] private TileMaterial[] tileMaterials;
-        [SerializeField] private GameObject prefabBuilding;
-        [SerializeField] private GameObject prefabTrees;
+        [SerializeField] private GameObject[] buildingPrefabs;
+        [SerializeField] private GameObject[] treePrefabs;
 
         private readonly Tile[] _tileTypes =
             Enum.GetValues(typeof(Tile))
                 .Cast<Tile>()
                 .ToArray();
 
+        private readonly List<GameObject> _terrainDetails = new();
         private MeshFilter _terrainMeshFilter;
-        private List<GameObject> _terrainDetails = new();
 
         /// <summary>
         ///     Type for configuration.
@@ -29,21 +29,6 @@ namespace Assets.Scripts
         {
             public Tile type;
             public Material material;
-        }
-
-        /// <summary>
-        ///     Temporary.
-        /// </summary>
-        private struct TerrainTile
-        {
-            public readonly float Height;
-            public readonly Tile Type;
-
-            public TerrainTile(float height, Tile type)
-            {
-                Height = height;
-                Type = type;
-            }
         }
 
         /// <summary>
@@ -81,10 +66,10 @@ namespace Assets.Scripts
         /// </summary>
         private void OnEnable()
         {
-            _terrainMeshFilter.mesh = GenerateTerrainMesh(simController.TerrainMap, simController.HeightMap);
-            //GenerateTerrainDetails(map);
-
             simController.OnStateReset += HandleStateReset;
+
+            _terrainMeshFilter.mesh = GenerateTerrainMesh(simController.TerrainMap, simController.HeightMap);
+            GenerateTerrainDetails(simController.TerrainMap, simController.HeightMap);
         }
 
         /// <summary>
@@ -93,7 +78,9 @@ namespace Assets.Scripts
         private void OnDisable()
         {
             simController.OnStateReset -= HandleStateReset;
+
             foreach (GameObject thing in _terrainDetails) Destroy(thing);
+            _terrainDetails.Clear();
         }
 
         /// <summary>
@@ -102,7 +89,7 @@ namespace Assets.Scripts
         /// <exception cref="InvalidConfigException"></exception>
         private void ValidateConfig()
         {
-            if (prefabBuilding == null || prefabTrees == null) throw new InvalidConfigException();
+            if (treePrefabs.Length == 0 || buildingPrefabs.Length == 0) throw new InvalidConfigException();
         }
 
         /// <summary>
@@ -163,6 +150,7 @@ namespace Assets.Scripts
                 triangles.Add(lowerRight);
             }
 
+            // Create mesh.
             Mesh mesh = new();
             mesh.SetVertices(vertices);
             mesh.SetUVs(0, uv);
@@ -178,39 +166,112 @@ namespace Assets.Scripts
             int Index(int x, int y) => x + y * vertexWidth;
         }
 
-        // private void GenerateTerrainDetails(Tile[,] terrainMap, float[,] heightMap)
-        // {
-        //     int width = heightMap.GetLength(0);
-        //     int height = heightMap.GetLength(1);
-        //     int scale = SimController.WorldScale;
-        //
-        //     for (var y = 0; y < height; y++)
-        //     {
-        //         for (var x = 0; x < width; x++)
-        //         {
-        //             // Instantiate prefab.
-        //             if (heightMap[x, y].Type is Tile.Grassland or Tile.Paved)
-        //                 continue;
-        //             GameObject prefab = heightMap[x, y].Type is Tile.Woodland
-        //                 ? prefabTrees
-        //                 : prefabBuilding;
-        //             Vector3 position = new(
-        //                 x * scale + scale * 0.5f,
-        //                 heightMap[x, y].Height,
-        //                 y * scale + scale * 0.5f
-        //             );
-        //             GameObject detailObject = Instantiate(
-        //                 prefab,
-        //                 position,
-        //                 // Random rotation.
-        //                 Quaternion.Euler(0f, UnityEngine.Random.Range(0, 4) * 90f, 0f),
-        //                 transform
-        //             );
-        //             _terrainDetails.Add(detailObject);
-        //         }
-        //     }
-        // }
+        /// <summary>
+        ///
+        /// </summary>
+        /// <param name="terrainMap"></param>
+        /// <param name="heightMap"></param>
+        private void GenerateTerrainDetails(Tile[,] terrainMap, float[,] heightMap)
+        {
+            int width = terrainMap.GetLength(0);
+            int height = terrainMap.GetLength(1);
 
+            for (uint y = 0; y < height; y++)
+            for (uint x = 0; x < width; x++)
+            {
+                // Instantiate prefab.
+                Tile type = terrainMap[x, y];
+                switch (type)
+                {
+                    case Tile.Woodland:
+                        GenerateWoodlandDetails(heightMap, x, y);
+                        continue;
+                    case Tile.Building:
+                        GenerateBuildingDetails(heightMap, x, y);
+                        continue;
+                    case Tile.Paved or Tile.Grassland:
+                        continue;
+                    default:
+                        throw new ImpossibleStateException();
+                }
+            }
+        }
+
+        /// <summary>
+        ///
+        /// </summary>
+        /// <param name="heightMap"></param>
+        /// <param name="xCoord"></param>
+        /// <param name="yCoord"></param>
+        private void GenerateBuildingDetails(float[,] heightMap, uint xCoord, uint yCoord)
+        {
+            const int scale = SimController.WorldScale;
+            GameObject prefab = buildingPrefabs[UnityEngine.Random.Range(0, buildingPrefabs.Length)];
+
+            Vector3 position = new(
+                xCoord * scale + scale * 0.5f,
+                heightMap[xCoord, yCoord],
+                yCoord * scale + scale * 0.5f);
+
+            Quaternion rotation = Quaternion.Euler(0f, UnityEngine.Random.Range(0, 3) * 90f, 0f);
+
+            GameObject detailObject = Instantiate(prefab, position, rotation, transform);
+            _terrainDetails.Add(detailObject);
+        }
+
+        /// <summary>
+        ///
+        /// </summary>
+        /// <param name="heightMap"></param>
+        /// <param name="xCoord"></param>
+        /// <param name="yCoord"></param>
+        private void GenerateWoodlandDetails(float[,] heightMap, uint xCoord, uint yCoord)
+        {
+            const int scale = SimController.WorldScale;
+            int iterations = UnityEngine.Random.Range(3, 4);
+            var objectPositions = new Vector3[iterations];
+
+            for (var i = 0; i < iterations; i++)
+            {
+                GameObject prefab = treePrefabs[UnityEngine.Random.Range(0, treePrefabs.Length)];
+
+                Vector3 position;
+                bool isPositionValid;
+                int attempts = 0;
+                // do
+                // {
+                    position = new Vector3(
+                        xCoord * scale + scale * UnityEngine.Random.Range(0.01f, 0.99f),
+                        heightMap[xCoord, yCoord],
+                        yCoord * scale + scale * UnityEngine.Random.Range(0.01f, 0.99f));
+                    isPositionValid = true;
+                //
+                //     // Check that the random point is not too close to any existing positions.
+                //     for (var vec = 0; vec < i; vec++)
+                //     {
+                //         if (position.x - objectPositions[vec].x < scale * 0.1 ||
+                //             position.x - objectPositions[vec].x > scale * -0.1 ||
+                //             position.y - objectPositions[vec].y < scale * 0.1 ||
+                //             position.y - objectPositions[vec].y > scale * -0.1)
+                //         {
+                //             isPositionValid = false;
+                //             attempts++;
+                //             break;
+                //         }
+                //     }
+                // } while (!isPositionValid || attempts > 5);
+
+                Quaternion rotation = Quaternion.Euler(0f, UnityEngine.Random.Range(0, 360), 0f);
+
+                GameObject detailObject = Instantiate(prefab, position, rotation, transform);
+                _terrainDetails.Add(detailObject);
+                objectPositions[i] = position;
+            }
+        }
+
+        /// <summary>
+        /// Handle
+        /// </summary>
         private void HandleStateReset()
         {
         }
